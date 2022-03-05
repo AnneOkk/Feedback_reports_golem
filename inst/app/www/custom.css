@@ -1,0 +1,28 @@
+ 
+h1 {
+  font-size: 205px; 
+  font-weight: bold;
+  color: #24455c;
+  font-family: "Trebuchet MS";
+  text-shadow:
+  -1px -1px 0 #ffffff,  
+  1px -1px 0 #ffffff,
+  -1px 1px 0 #ffffff,
+  1px 1px 0 #ffffff;
+}
+
+h2 {
+  font-size: 45px; 
+  font-weight: bold;
+  color: #24455c;
+  font-family: "Trebuchet MS";
+  text-shadow:
+  -0.5px -0.5px 0 #ffffff,  
+  0.5px -0.5px 0 #ffffff,
+  -0.5px 0.5px 0 #ffffff,
+  0.5px 0.5px 0 #ffffff;
+}
+
+a {
+  color: hotpink;
+}
