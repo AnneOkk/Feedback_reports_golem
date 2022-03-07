@@ -76,25 +76,14 @@ app_ui <- function(request) {
                   height = "70px",
                   mod_age_hist_ui("age_hist_ui_1"),
                   icon("question-circle"),
-                  tags$div("Research published in the",
-                           tags$a(href = "https://hbr.org/2018/07/research-the-average-age-of-a-successful-startup-founder-is-45#", 
-                                  "Harvard Business Review (2018)"),
-                                  "shows that the average age at which a successful founder started their company is 45. 
-                                  According to the report,'that’s among the top 0.1% of startups based on growth in their first five years'."
-                  )
+                  age_text
                 ), 
                 column(
                   7, 
                   height = "70px",
                   mod_gender_plot_ui("gender_plot_ui_1"),
                   icon("question-circle"),
-                  tags$div(
-                    "According to data of the",
-                    tags$a(
-                      href = "https://blogs.worldbank.org/opendata/women-entrepreneurs-needed-stat",
-                      "Gender Data Portal of the World Bank Group,"),
-                    "1 in 3 businesses are owned by a woman."
-                )
+                  gender_text
               )
             )
           )

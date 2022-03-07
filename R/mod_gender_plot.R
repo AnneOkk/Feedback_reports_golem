@@ -37,8 +37,7 @@ mod_gender_plot_server <- function(id, df){
                 type = "pie", width = 500, height = 500) %>%
           plotly::layout(plot_bgcolor  = "rgba(0, 0, 0, 0)",
                  paper_bgcolor = "rgba(0, 0, 0, 0)", 
-                 font = list(family = "Courier New",
-                             size = 14,
+                 font = list(size = 14,
                              color = "white"))
       })
     })
