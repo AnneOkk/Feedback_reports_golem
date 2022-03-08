@@ -43,7 +43,7 @@ app_ui <- function(request) {
           bs4Dash::menuItem(
             text = "Sample information",
             tabName = "info",
-            icon = icon("calendar-alt")
+            icon = icon("user-friends")
           )
         ),
         bs4Dash::sidebarMenu(
@@ -51,7 +51,7 @@ app_ui <- function(request) {
           bs4Dash::menuItem(
             mod_ID_selector_ui("ID_selector_ui_1"),
             text = "Participant ID",
-            icon = icon("calendar-alt")
+            icon = icon("sliders-h")
           )
         )
       ),

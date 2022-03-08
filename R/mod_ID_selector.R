@@ -12,10 +12,10 @@
 mod_ID_selector_ui <- function(id){
   ns <- NS(id)
   shiny::tagList(
-    useShinyFeedback(),
+    shinyFeedback::useShinyFeedback(),
     numericInput(ns("select"), 
-               label = "Please enter your Participant ID", 
-               value = 1000,
+               label = "Participant ID", 
+               value = "",
                min = 1001, max = 1140)
   )
 
@@ -29,22 +29,10 @@ mod_ID_selector_ui <- function(id){
 mod_ID_selector_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-    observeEvent(input$select, {
-      if (input$select > 1140 | input$select < 1001) {
-        showFeedbackWarning(
-          inputId = "select",
-          text = "Enter ID between 1001 and 1140"
-        )  
-      } else {
-        hideFeedback("select")
-      }
-    })
     partID <- reactive({
-      if (is.null(input$select)){
-        return(1000)
-      } else {
-        return(input$select)
-      }
+      valid = input$select > 1000 & input$select < 1140
+      shinyFeedback::feedbackWarning("select", !valid, "Enter value between 1001 and 1140", color = "#fde725")
+      input$select
     })
   })
 }
