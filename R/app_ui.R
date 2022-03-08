@@ -45,6 +45,14 @@ app_ui <- function(request) {
             tabName = "info",
             icon = icon("calendar-alt")
           )
+        ),
+        bs4Dash::sidebarMenu(
+          id = "part_id",
+          bs4Dash::menuItem(
+            mod_ID_selector_ui("ID_selector_ui_1"),
+            text = "Participant ID",
+            icon = icon("calendar-alt")
+          )
         )
       ),
         body = bs4Dash::dashboardBody(

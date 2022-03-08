@@ -15,13 +15,18 @@ mod_age_hist_ui <- function(id){
 #' age_hist Server Functions
 #'
 #' @noRd 
-mod_age_hist_server <-  function(id, df){
+mod_age_hist_server <-  function(id, df, partID){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
-    age_plot <- barplot(data = df, variable = "t1age_1", x_name = "Age", y_name = "number", age = TRUE, gender = FALSE)
-    output$age_plot <- renderPlot(age_plot, bg="transparent")
+    output$age_plot <- renderPlot({
+      partID <- partID()
+      barplot(data = df, variable = "t1age_1", x_name = "Age", y_name = "number", age = TRUE, gender = FALSE, partID)
+    }, bg="transparent")
   })
 }
+
+
+
     
 
 ## To be copied in the UI

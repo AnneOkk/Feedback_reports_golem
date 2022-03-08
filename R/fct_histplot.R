@@ -4,18 +4,14 @@
 #' @import ggplot2
 #'
 #' @return ggplot object 
+#' @examples 
+#' barplot(data = df, variable = "t1age_1", x_name = "Age", y_name = "Number", age = TRUE, partID = 1001)
 #'
 #' @noRd
-  
-barplot <- function(data, variable, x_name, y_name, age = FALSE, gender = FALSE, ...) {
-  if(age == TRUE){
-    part_age <- 44
-    younger_than <- round(nrow(data[data[, variable] > part_age, ]) / (nrow(data) * 100), 0)
-    text <- paste("At the time the survey was administered, you were younger than percent of the entrepreneurs \nin the sample.\n\n\n")
-  } 
-  ggplot2::ggplot(data, aes_string(variable))+
-    ggtitle(text) +
-    theme(text = element_text(size = 14)) +
+
+# create base plot 
+barplot <- function(data, variable, x_name, y_name, age = FALSE, gender = FALSE, partID) {
+  plot <- ggplot2::ggplot(data, aes_string(variable))+
     theme(plot.title = element_text(size=14)) +
     theme(axis.text.x = element_text(color = "black", size = 14, face = "plain")) +
     theme(axis.text.y = element_text(color = "black", size = 14, face = "plain")) +
@@ -29,6 +25,17 @@ barplot <- function(data, variable, x_name, y_name, age = FALSE, gender = FALSE,
           axis.text.x = element_text(colour = "white"),
           axis.text.y = element_text(colour = "white"),
           axis.title = element_text(color = "white"))
-}
+  # add age info
+  if(age == TRUE){
+    part_age <- data[[variable]][data[["ID_code"]] == partID]
+    younger_than <- round((nrow(data[data[, variable] > part_age, ]) / nrow(data[data[, variable] > 18, ])) * 100, 0)
+    text <- paste(" You are younger \n than", younger_than, " percent\n of the participants")
+    plot + 
+      theme(text = element_text(size = 14, colour = "white")) +
+      geom_vline(xintercept = part_age, linetype="dotted", color = "white", size=1.5) + annotate(geom="text", x=part_age, y=40, label=text,
+                        color="white", hjust = 0)
+    } 
+  }
+    
 
 
