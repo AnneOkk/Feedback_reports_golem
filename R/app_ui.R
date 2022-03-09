@@ -21,7 +21,7 @@ app_ui <- function(request) {
       header = bs4Dash::dashboardHeader(
         title = bs4Dash::dashboardBrand(
           title = "Feedback Reports",
-          href = "https://felixbehne.shinyapps.io/ant-colony-optimization/",
+          href = "https://github.com/AnneOkk",
           image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRaxf3S4xKkxZrXiIElsH4c1DQbHc79JdrF0A&usqp=CAU",
         )
       ),
