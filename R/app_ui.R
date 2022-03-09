@@ -74,8 +74,9 @@ app_ui <- function(request) {
                 column(
                   offset = 0.2,
                   width = 11, title = "Participants",
-                  height = "10px",
-                  mod_sample_info_ui("sample_info_ui_1")
+                  height = "20px",
+                  mod_sample_info_ui("sample_info_ui_1"),
+                  br()
                   )
                 ),
               fluidRow(

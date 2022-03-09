@@ -31,7 +31,7 @@ mod_ID_selector_server <- function(id){
     ns <- session$ns
     partID <- reactive({
       valid = input$select > 1000 & input$select < 1140
-      shinyFeedback::feedbackWarning("select", !valid, "Enter value between 1001 and 1140", color = "#fde725")
+      shinyFeedback::feedbackWarning("select", !valid, "Enter value between 1001 and 1140", color = "#21918c ")
       input$select
     })
   })
