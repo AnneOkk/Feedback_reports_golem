@@ -22,7 +22,7 @@ app_ui <- function(request) {
         title = bs4Dash::dashboardBrand(
           title = "Feedback Reports",
           href = "https://github.com/AnneOkk",
-          image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRaxf3S4xKkxZrXiIElsH4c1DQbHc79JdrF0A&usqp=CAU",
+          image = "https://s7.gifyu.com/images/chat-1873543_1280.png",
         )
       ),
       sidebar = bs4Dash::dashboardSidebar(
@@ -83,17 +83,27 @@ app_ui <- function(request) {
                 column(
                   4, 
                   height = "70px",
+                  h5(style="text-align: center;","Sample age"),
                   mod_age_hist_ui("age_hist_ui_1"),
                   icon("question-circle"),
                   age_text
                 ), 
                 column(
-                  7, 
+                  4, 
                   height = "70px",
+                  h5(style="text-align: center;","Sample gender"),
                   mod_gender_plot_ui("gender_plot_ui_1"),
                   icon("question-circle"),
                   gender_text
-              )
+                )
+              ),
+              fluidRow(
+                column(
+                  8, 
+                  height = "90px",
+                  h5(style="text-align: center;","World data"),
+                  mod_world_map_ui("world_map_ui_1", df)
+                )
             )
           )
         )

@@ -15,17 +15,17 @@
 
 ## Dependencies ----
 ## Add one line by package you want to add as dependency
-usethis::use_package("shinyFeedback")
+usethis::use_package("sf")
 
 ## Add modules ----
 ## Create a module infrastructure in R/
-golem::add_module( name = "sample_info" ) # Name of the module
-golem::add_module( name = "ID_selector" ) # Name of the module
+golem::add_module( name = "world_map" ) # Name of the module
+golem::add_module( name = "world_map2" ) # Name of the module
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
-golem::add_fct( "infotexts") 
-golem::add_utils( "helpers" )
+golem::add_fct( "world_map") 
+golem::add_utils( "textInput2" )
 
 ## External resources
 ## Creates .js and .css files at inst/app/www

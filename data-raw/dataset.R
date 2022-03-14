@@ -1,4 +1,4 @@
-## code to prepare `dataset` dataset goes here
+## code to prepare `df` dataset 
 
 library(haven)
 library(rlang)
@@ -10,6 +10,7 @@ library(stringr)
 library(sjlabelled)
 library(zoo)
 library(lubridate)
+library(sf)
 
 
 # Read in data ------------------------------------------------------------
@@ -23,7 +24,6 @@ read_data <- function(rel_directory, pattern) {
     return(df_list)
 }
 
-df_list <- read_data(rel_directory = "Data/", pattern = "\\.sav$")
 
 # Get full df -------------------------------------------------------------
 transform_to_one_df <- function(df_list) {
@@ -42,16 +42,16 @@ transform_to_one_df <- function(df_list) {
   
   T12 = left_join(Events_T1, Events_T2, by = "newcol")
   T123= left_join(T12, Events_T3, by = "newcol") %>%
-  # remove all rows that have no event reported 
+    # remove all rows that have no event reported 
     subset(., t1event == 1) %>%
-  # remove all rows that have duplicated newcol
+    # remove all rows that have duplicated newcol
     .[!duplicated(.$newcol), ] %>%
-  # remove all rows that have no novelty, disruptiveness, performance impact reported for event 
-     filter_at(vars(matches("novel|disrup|perfo")) ,any_vars(!is.na(.)))
+    # remove all rows that have no novelty, disruptiveness, performance impact reported for event 
+     filter_at(vars(matches("novel|disrup|perfo")) ,any_vars(!is.na(.))) %>% 
+    # remove if no event happened based on texts
+    filter_at(., vars(starts_with("t1evdes")), all_vars(!(. %in% c('hello','nothing','b', 'jhkjhkjhkjh', 'fbzfDB', 'ffff', 'TESTOMAT', '-'))))
   return(T123)
 }
-
-T123 <- transform_to_one_df(df_list)
   
 # Rename columns -------------------------------------------------------------
 rename_cols <- function(df){
@@ -66,11 +66,11 @@ rename_cols <- function(df){
   # remove if NA on all severity columns
   df <- df[rowSums(is.na(df[, grep("Severity", names(df))]))  < 8, ]
   # get event with maximum severity 
-  max_sev <- df %>% dplyr::select(matches("Severity")) %>% data.frame(.) %>% apply(.,1,which.max) 
-  df <- cbind(df, max_sev)
+  maxsev <- df %>% dplyr::select(matches("Severity")) %>% data.frame(.) %>% apply(.,1,which.max) 
+  df <- cbind(df, maxsev)
   # select data events 
-  T123_event_stuff <- df %>% dplyr::select(matches("email|max_sev|event|evcat|evdes|novel|disrup|perfo|cope|threat|emotionslast|threatlast|probsolv"))
-  T123_event_stuff_no <- df %>% dplyr::select(!matches("max_sev|event|evcat|evdes|novel|disrup|perfo|cope|threat|emotionslast|threatlast|probsolv"))
+  T123_event_stuff <- df %>% dplyr::select(matches("email|maxsev|event|evcat|evdes|novel|disrup|perfo|cope|threat|emotionslast|threatlast|probsolv"))
+  T123_event_stuff_no <- df %>% dplyr::select(!matches("maxsev|event|evcat|evdes|novel|disrup|perfo|cope|threat|emotionslast|threatlast|probsolv"))
   # change column names: threatlast, redundant '_'
   names(T123_event_stuff)  <- gsub("(^.*)(threatlast)([a-z]{3})(_[1-9]{1})(_1)", paste0("\\1", "\\2", "\\3", "\\4"), names(T123_event_stuff)) %>%
     gsub("_1_", "_", fixed = T, perl=F, .) %>% 
@@ -91,15 +91,13 @@ rename_cols <- function(df){
     gsub("(t[1-3]{1})(threatlast)_([1-9]+)(_[0-9]{1})", paste0("\\1", "\\2", "\\3", "\\4"), fixed = F, perl=F, .) %>%
     gsub("(t[1-3]{1})(threat)_([1-9]+)(_[0-9]{1})", paste0("\\1", "\\2", "\\3", "\\4"), fixed = F, perl=F, .)
   
-  T123_event_stuff <- T123_event_stuff[, grep("(t[1-9]{1}[a-z]+._)(\\d$)", colnames(T123_event_stuff))] %>% cbind(., T123_event_stuff$max_sev) %>%
-    pivot_longer(cols = -max_sev, names_to = c(".value", "index"), names_pattern = "(t[1-9]{1}[a-z]+._)(\\d$)") %>%
-    filter(str_extract(as.character(max_sev), "\\d$") == index)
+  T123_event_stuff <- T123_event_stuff %>%
+    pivot_longer(cols = -maxsev, names_to = c(".value", "index"), names_pattern = "(t[1-9]{1}[a-z]+._)(\\d$)") %>%
+    filter(str_extract(as.character(maxsev), "\\d$") == index)
   
-  T123 <- cbind(T123_event_stuff_no, T123_event_stuff, max_sev)
+  T123 <- cbind(T123_event_stuff_no, T123_event_stuff)
   return(T123)
 }
-
-T123 <- rename_cols(T123)
 
 # Country labels --------------------------------------------------------------
 country_label_dat <- function(df){
@@ -116,7 +114,7 @@ country_label_dat <- function(df){
   return(df)
 }
 
-T123 <- country_label_dat(T123)
+
 
 # Sector labels -----------------------------------------------------------
 sector_label_dat <- function(df){
@@ -150,8 +148,7 @@ sector_label_dat <- function(df){
   
   return(df)
 }
-  
-T123 <- sector_label_dat(T123)
+
   
 
 # Time since business foundation ------------------------------------------
@@ -164,12 +161,30 @@ business_found <- function(df){
   return(df)
 }
 
-T123 <- business_found(T123)
 
-# Label age ---------------------------------------------------------------
-T123$t1age <- as.numeric(names(attr(T123$t1age_1,"labels")[match(T123$t1age_1,attr(T123$t1age_1,"labels"))]))
+# Create mean event severity score ----------------------------------------
 
-# Rename variables --------------------------------------------------------
+get_mean_severity <- function(df){
+  df <- df %>%
+    mutate(t1meansev = select(., starts_with("T1Severity")) %>%
+             rowMeans(na.rm = TRUE)) %>% 
+    select(-contains("T1Severity"))
+  return(df)
+}
+
+
+# Renaming -----------------------------------------------------------------
+
+# Perform all cleaning operations defined in functions above
+T123 <- read_data(rel_directory = "Data/", pattern = "\\.sav$")  %>%
+  transform_to_one_df(.) %>% 
+  rename_cols(.) %>% 
+  country_label_dat(.) %>% 
+  sector_label_dat(.) %>% 
+  business_found(.) %>%
+  get_mean_severity(.)
+
+
 names(T123) <- gsub("(threat)([1-9])", "\\1_\\2", names(T123)) %>%
   gsub("(last)([1-9])", "\\1_\\2", .) %>%
   gsub("(.*)_$", "\\1", .) %>%
@@ -177,23 +192,27 @@ names(T123) <- gsub("(threat)([1-9])", "\\1_\\2", names(T123)) %>%
   gsub("jobsa_2_3", "jobsa_3", .) %>%
   gsub('^(t.)(cope)(.*)(\\d{1})$', '\\1\\2\\3_\\4', .)
 
-
-# Unselect irrelevant/ not anonymous variables --------------------------------------------------------------
-T123 <- T123 %>% dplyr::select(-matches("Status|IPAddress|Progress|Duration|Finished|Response|Name|Email|Reference|Location|Distribution|Language|consent|email|code|t1date_1|t1date_2_1|_TEXT|t1age_1|t1product|jobsa_2_2|t1evdes_|goodbye|Date|.x$|.y$"))
-
-
-
-# Z score for jobsa and recode jobsa_3 -------------------------------------------------------
+# use age labels for age variable
+T123$t1age <- as.numeric(names(attr(T123$t1age_1,"labels")[match(T123$t1age_1,attr(T123$t1age_1,"labels"))]))
+  
+# Remove irrelevant/ not anonymous variables
 T123 <- T123 %>% 
+  # coalesce location variables from different time points
+  dplyr::mutate(LocationLat = dplyr::coalesce(LocationLatitude.x, LocationLatitude.y, LocationLatitude)) %>% 
+  mutate(LocationLon = coalesce(LocationLongitude.x, LocationLongitude.y, LocationLongitude)) %>%
+  # Z score for jobsa and recode jobsa_3 (not measured on same scale)
   mutate_at(vars(contains("jobsa")), list( ~as.vector(scale(.)))) %>% 
-  mutate_at(vars(contains("jobsa_3")), list( ~(-1*(.)))) 
+  mutate_at(vars(contains("jobsa_3")), list( ~(-1*(.)))) %>%
+  dplyr::select(-matches("Status|IPAddress|Progress|Duration|Finished|Response|Name|Email|Reference|Distribution|Language|consent|email|code|t1date_1|t1date_2_1|_TEXT|t1age_1|t1product|jobsa_2_2|t1evdes_|goodbye|Date|.x$|.y$|LocationLatitude|LocationLongitude|t1evcat")) 
+  
 
-# Write raw data  ---------------------------------------------------------
-write_sav(T123, "df_full_raw.sav")
+
+
+
 
 # Reliabilities  -----------------------------------------------------
 get_reliabilities <- function(df) {
-  T123_alph <- df %>% select(-matches("evdes|newcol|t1occ|found|own|sector|gender|lang|edu|newcol|preocc|evcat|timebuiss|age|novel|disrup|perfo|probsolv|cope|goodbye|max_sev")) %>%
+  T123_alph <- df %>% select(-matches("evdes|newcol|t1occ|found|own|sector|gender|lang|edu|newcol|preocc|evcat|timebuiss|age|novel|disrup|perfo|probsolv|cope|goodbye|maxsev|LocationLat|LocationLon|location|t1meansev")) %>%
   ## Remove columns with more than 60% NA
   .[, which(colMeans(!is.na(.)) > 0.4)]
   alph_split <- T123_alph %>% remove_all_labels(.) %>%
@@ -204,29 +223,89 @@ get_reliabilities <- function(df) {
   return(alph_df)
 }
 
-rels <- get_reliabilities(T123)
 
-# Comp_df -----------------------------------------------------------------
+# Create composite data frame -----------------------------------------------------------------
 make_comp_df <- function(df) {
-  T123_comp <- df %>% select(-matches("evdes|newcol")) 
+  T123_comp <- df %>% select(-matches("evdes|newcol|LocationLat|LocationLon")) 
   comp_split <- T123_comp %>% remove_all_labels(.) %>% split.default(sub("_.*", "", names(T123_comp))) 
   comp <- purrr::map(comp_split, ~ multicon::composite(.x, nomiss = 0.8), data = .x)
   comp_df <- do.call("cbind", comp) %>% as.data.frame(.)
   return(comp_df)
 }
 
+df <- make_comp_df(T123)
+df <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df ) %>%  
+  mutate_at(vars(matches("LocationL")),
+            ~(as.numeric(.))) %>%
+  # Add anonymous ID
+  mutate(ID_code = seq(1, nrow(df)) + 1000) %>%
+  # Add descriptive labels
+  mutate(.,
+         maxsev_descr = case_when(
+           maxsev == 1 ~ "Financial difficulties", 
+           maxsev == 2 ~ "Conflicts with clients, stakeholders, or colleagues",
+           maxsev == 3 ~ "Conflicts between clients, stakeholders, or colleagues",
+           maxsev == 4 ~ "Legal issues",
+           maxsev == 5 ~ "Absence or lack of personnel",
+           maxsev == 6 ~ "Problems with material or supply",
+           maxsev == 7 ~ "Mistakes",
+           maxsev == 8 ~ "Other"
+         )) %>%
+  mutate(.,
+         edu_descr = case_when(
+           t1edu == 1 ~ "Primary school",
+           t1edu == 2 ~ "Secondary school",
+           t1edu == 3 ~ "Technical school diploma",
+           t1edu == 4 ~ "University degree",
+           t1edu == 5 ~ "Doctorate degree",
+           t1edu == 6 ~ "Other"
+         )) %>%
+  mutate(.,
+         own_descr = case_when(
+           t1own == 1 ~ "Single owner",
+           t1own == 2 ~ "Co-owned venture",
+           t1own == 3 ~ "Other"
+         )) %>%
+  mutate(.,
+         sector_descr = case_when(
+           t1sector == 1 ~ "Information, Communications, \nor Technology", 
+           t1sector == 2 ~ "Finance, Real Estate, or \nBusiness Services", 
+           t1sector == 3 ~ "Health, Education, Government, \nor Social and Consumer \nServices",
+           t1sector == 4 ~ "Wholesale, Retail", 
+           t1sector == 5 ~ "Manufacturing, Logistics", 
+           t1sector == 6 ~ "Agriculture, Extractive, or \nConstruction", 
+           t1sector == 7 ~ "Other"
+         )) %>%
+  # rename columns for input selection in app 
+  rename(
+    "Event_description" = t1evdes,
+    "Severest_event" = maxsev_descr,
+    "Age" = t1age,
+    "Event_disruptiveness" = t1disrup,
+    "Education_level" = edu_descr,
+    "Gender" = t1gender,
+    "Mean_event_severity" = t1meansev,
+    "Event_novelty" = t1novel,
+    "Co-ownership" = own_descr,
+    "Event_performance impact" = t1perfo,
+    "Problem_solved" = t1probsolv,
+    "Industry" = sector_descr,
+    "Business_age" = t1timebuiss
+  ) %>% 
+  select(-maxsev, -t1edu, -t1own, -t1sector)
+  
 
-# Add event descriptions --------------------------------------------------
-t1evdes <- T123$t1evdes
-comp_df <- make_comp_df(T123) %>% cbind(., t1evdes)
+# Write data   ---------------------------------------------------------
+rels <- get_reliabilities(T123) # reliabilities
+write.csv(rels, "reliabilities.csv") 
+write_sav(T123, "df_full_raw.sav") # full data set 
+write.csv(df, "comp_df.csv") # composite data
 
 
-# Add anonymous ID --------------------------------------------------------
-comp_df$ID_code <- seq(1, nrow(comp_df)) + 1000
+usethis::use_data(df, overwrite = TRUE, internal = TRUE) # composite data for internal use in App 
 
-# Write csv  -------------------------------------------------------
-write.csv(comp_df, "comp_df.csv")
+world_df <- map_data("world")
 
-df <- comp_df
-usethis::use_data(df, overwrite = TRUE, internal = TRUE)
+usethis::use_data(world_df, overwrite = TRUE, internal = FALSE) # world data for world map  
+
 

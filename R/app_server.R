@@ -16,4 +16,5 @@ app_server <- function( input, output, session ) {
   mod_age_hist_server("age_hist_ui_1", df, partID = selectedID)
   mod_gender_plot_server("gender_plot_ui_1", df)
   mod_sample_info_server("sample_info_ui_1", df)
+  mod_world_map_server("world_map_ui_1", df, world_df)
 }
