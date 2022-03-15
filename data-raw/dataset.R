@@ -208,8 +208,6 @@ T123 <- T123 %>%
 
 
 
-
-
 # Reliabilities  -----------------------------------------------------
 get_reliabilities <- function(df) {
   T123_alph <- df %>% select(-matches("evdes|newcol|t1occ|found|own|sector|gender|lang|edu|newcol|preocc|evcat|timebuiss|age|novel|disrup|perfo|probsolv|cope|goodbye|maxsev|LocationLat|LocationLon|location|t1meansev")) %>%
@@ -276,6 +274,12 @@ df <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df ) %>%
            t1sector == 6 ~ "Agriculture, Extractive, or \nConstruction", 
            t1sector == 7 ~ "Other"
          )) %>%
+  mutate(.,
+         Gender = case_when(
+           t1gender == 1 ~ "Male", 
+           t1sector == 2 ~ "Female", 
+           t1sector == 3 ~ "Non-binary"
+         )) %>%
   # rename columns for input selection in app 
   rename(
     "Event_description" = t1evdes,
@@ -283,7 +287,6 @@ df <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df ) %>%
     "Age" = t1age,
     "Event_disruptiveness" = t1disrup,
     "Education_level" = edu_descr,
-    "Gender" = t1gender,
     "Mean_event_severity" = t1meansev,
     "Event_novelty" = t1novel,
     "Co-ownership" = own_descr,
@@ -292,7 +295,7 @@ df <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df ) %>%
     "Industry" = sector_descr,
     "Business_age" = t1timebuiss
   ) %>% 
-  select(-maxsev, -t1edu, -t1own, -t1sector)
+  select(-maxsev, -t1edu, -t1own, -t1sector, -t1gender)
   
 
 # Write data   ---------------------------------------------------------
