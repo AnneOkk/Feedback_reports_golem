@@ -83,8 +83,6 @@ mod_world_map_server <- function(id, df, world_df){
         # set limits for the world map latitude and longitude
         scale_x_continuous(limits = ranges$x) + 
         scale_y_continuous(limits = ranges$y) +
-        scale_fill_continuous(breaks = breaks(),
-                               labels = labels()) +
         theme_void() + # remove background
         labs(fill = colnames(df[, selected_var1()]), 
              size = colnames(df[, selected_var1()])) 
