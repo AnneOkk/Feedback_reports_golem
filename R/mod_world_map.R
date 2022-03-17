@@ -43,8 +43,26 @@ mod_world_map_server <- function(id, df, world_df){
                              y = c(min(df[, "LocationLat"], na.rm = T), max(df[, "LocationLat"], na.rm = T))) # set initial ranges for the world map
     size <- reactiveValues(height = 300, width = 900) # set initial plot height and width (no clicking)
     
-    selected_var1 <- reactive(input$select_var1) # first selected variable 
+    selected_var1 <- reactive(input$select_var1) # first selected variable
     
+    # assign breaks and labels for selected variable 
+    breaks <- reactive(if(selected_var1() == "Age"){
+      c(20, 30, 40, 50, 60, 70, 80, 90)
+    } else {
+      quantile(df[, selected_var1()], prob=c(0.2, 0.4, 0.6, 0.8, 1.0), na.rm = T)
+    })
+    
+    labels <- reactive(if(selected_var1() == "Age"){
+      c(20, 30, 40, 50, 60, 70, 80, 90)
+    }else if (selected_var1() == "t1jobsa") {
+      c("extremely dissatisfied", "somewhat dissatisfied", "neither satisfied nor dissatisfied", "somewhat satisfied", "extremely satisfied")
+    }else if (selected_var1() == "t1jobstr") {
+      c("never feeling strained", "sometimes feeling strained", "about half of the time feeling strained", "most of the time feeling strained", "always feeling strained")
+    }else if (selected_var1() == "Mean_event_severity") {
+      c("not at all severe", "a little severe", "somewhat severe", "very severe", "extremely severe")
+    })
+      
+    # make plot
     output$plot <- renderPlot({
       ggplot2::ggplot(data = world_df) +
         ggplot2::geom_map(
@@ -65,13 +83,16 @@ mod_world_map_server <- function(id, df, world_df){
         # set limits for the world map latitude and longitude
         scale_x_continuous(limits = ranges$x) + 
         scale_y_continuous(limits = ranges$y) +
+        scale_fill_continuous(breaks = breaks(),
+                               labels = labels()) +
         theme_void() + # remove background
-        labs(colour = colnames(df[, selected_var1()]), 
+        labs(fill = colnames(df[, selected_var1()]), 
              size = colnames(df[, selected_var1()])) 
     }, 
     bg="transparent", 
     height = reactive(size$height), 
-    width = reactive(size$width))
+    width = reactive(size$width)
+    )
     
     observeEvent(input$plot1_dblclick, {
       brush <- input$plot1_brush
@@ -85,7 +106,7 @@ mod_world_map_server <- function(id, df, world_df){
     })
     observeEvent(input$plot1_dblclick, {
       size$height = 300 # adjust map size based on double click 
-      size$width  = 700
+      size$width  = 500
     })
     })
 }

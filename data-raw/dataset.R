@@ -274,12 +274,6 @@ df <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df ) %>%
            t1sector == 6 ~ "Agriculture, Extractive, or \nConstruction", 
            t1sector == 7 ~ "Other"
          )) %>%
-  mutate(.,
-         Gender = case_when(
-           t1gender == 1 ~ "Male", 
-           t1sector == 2 ~ "Female", 
-           t1sector == 3 ~ "Non-binary"
-         )) %>%
   # rename columns for input selection in app 
   rename(
     "Event_description" = t1evdes,
@@ -295,7 +289,7 @@ df <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df ) %>%
     "Industry" = sector_descr,
     "Business_age" = t1timebuiss
   ) %>% 
-  select(-maxsev, -t1edu, -t1own, -t1sector, -t1gender)
+  select(-maxsev, -t1edu, -t1own, -t1sector)
   
 
 # Write data   ---------------------------------------------------------

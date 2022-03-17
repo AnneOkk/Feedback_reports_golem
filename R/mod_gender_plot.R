@@ -24,7 +24,7 @@ mod_gender_plot_server <- function(id, df){
       output$gender_plot <- plotly::renderPlotly({
         lbls_gender <- c("Male", "Female", "Non-binary")
         count_gender <- df %>%
-          group_by(Gender) %>%
+          group_by(t1gender) %>%
           dplyr::tally() %>%
           .[2] %>%
           .[1:3, ] %>%
