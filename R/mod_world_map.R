@@ -11,16 +11,17 @@
 
 mod_world_map_ui <- function(id, df){
   ns <- NS(id)
+  var_options <- c("Age" = "Age",
+               "Job satisfaction" = "t1jobsa",
+               "Job strain" = "t1jobstr",
+               "Average event severity" = "Mean_event_severity")
   shiny::tagList(
     div(style="display:inline-block", # inline block to show selections side by side instead of above each other
         selectInput(ns("select_var1"), 
                     # second select variable for size (continuous)
                     label = "Select variable to plot:", 
-                    choices =  c("Age" = "Age",
-                                "Job satisfaction" = "t1jobsa",
-                                "Job strain" = "t1jobstr",
-                                "Average event severity" = "Mean_event_severity"),
-                   selected = NULL)),
+                    choices =  var_options,
+                   selected = var_options[1])),
     plotOutput(NS(id, "plot"), 
                dblclick = ns("plot1_dblclick"),
                brush = brushOpts(
@@ -45,25 +46,25 @@ mod_world_map_server <- function(id, df, world_df){
     
     selected_var1 <- reactive(input$select_var1) # first selected variable
     
-    # assign breaks and labels for selected variable 
-    breaks <- reactive(if(selected_var1() == "Age"){
-      c(20, 30, 40, 50, 60, 70, 80, 90)
-    } else {
-      quantile(df[, selected_var1()], prob=c(0.2, 0.4, 0.6, 0.8, 1.0), na.rm = T)
-    })
-    
-    labels <- reactive(if(selected_var1() == "Age"){
-      c(20, 30, 40, 50, 60, 70, 80, 90)
-    }else if (selected_var1() == "t1jobsa") {
-      c("extremely dissatisfied", "somewhat dissatisfied", "neither satisfied nor dissatisfied", "somewhat satisfied", "extremely satisfied")
-    }else if (selected_var1() == "t1jobstr") {
-      c("never feeling strained", "sometimes feeling strained", "about half of the time feeling strained", "most of the time feeling strained", "always feeling strained")
-    }else if (selected_var1() == "Mean_event_severity") {
-      c("not at all severe", "a little severe", "somewhat severe", "very severe", "extremely severe")
-    })
       
     # make plot
     output$plot <- renderPlot({
+      # assign breaks and labels for selected variable 
+      breaks <- if(selected_var1() == "Age"){
+        c(20, 30, 40, 50, 60, 70, 80, 90)
+      } else {
+        quantile(df[, selected_var1()], prob=c(0.2, 0.4, 0.6, 0.8, 1.0), na.rm = T)
+      }
+
+      labels <- if(selected_var1() == "Age"){
+        c(20, 30, 40, 50, 60, 70, 80, 90)
+      }else if (selected_var1() == "t1jobsa") {
+        c("extremely dissatisfied", "somewhat dissatisfied", "neither satisfied nor dissatisfied", "somewhat satisfied", "extremely satisfied")
+      }else if (selected_var1() == "t1jobstr") {
+        c("never feeling strained", "sometimes feeling strained", "about half of the time feeling strained", "most of the time feeling strained", "always feeling strained")
+      }else{
+        c("not at all severe", "a little severe", "somewhat severe", "very severe", "extremely severe")
+      }
       ggplot2::ggplot(data = world_df) +
         ggplot2::geom_map(
           map = world_df,
@@ -78,14 +79,14 @@ mod_world_map_server <- function(id, df, world_df){
                         ),
           alpha = 0.7, 
           shape = 21) + 
-        scale_fill_viridis_c(guide = "legend") +
-        scale_size_continuous(range = c(1, 12)) + 
+        scale_fill_viridis_c(guide = "legend", breaks = breaks, labels = labels) +
+        scale_size_continuous(range = c(1, 12), breaks = breaks, labels = labels) + 
         # set limits for the world map latitude and longitude
         scale_x_continuous(limits = ranges$x) + 
         scale_y_continuous(limits = ranges$y) +
         theme_void() + # remove background
-        labs(fill = colnames(df[, selected_var1()]), 
-             size = colnames(df[, selected_var1()])) 
+        labs(fill = selected_var1(), 
+             size = selected_var1())  
     }, 
     bg="transparent", 
     height = reactive(size$height), 
