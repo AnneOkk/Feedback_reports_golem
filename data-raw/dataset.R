@@ -11,6 +11,7 @@ library(sjlabelled)
 library(zoo)
 library(lubridate)
 library(sf)
+library(labelled)
 
 
 # Read in data ------------------------------------------------------------
@@ -234,77 +235,74 @@ make_comp_df <- function(df) {
   return(comp_df)
 }
 
-df <- make_comp_df(T123)
 df_orig <- make_comp_df(T123)
-df$t1jobsa_overall <- T123$overallsat
-df <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df ) %>%  
+df_orig$overallsat <- T123$overallsat
+
+df_orig <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df_orig ) %>%  
   mutate_at(vars(matches("LocationL")),
             ~(as.numeric(.))) %>%
   # Add anonymous ID
-  mutate(ID_code = seq(1, nrow(df)) + 1000) %>%
+  mutate(ID_code = seq(1, nrow(df_orig)) + 1000) %>%
   # Add descriptive labels
-  mutate(.,
-         maxsev_descr = case_when(
-           maxsev == 1 ~ "Financial difficulties", 
-           maxsev == 2 ~ "Conflicts with clients, stakeholders, or colleagues",
-           maxsev == 3 ~ "Conflicts between clients, stakeholders, or colleagues",
-           maxsev == 4 ~ "Legal issues",
-           maxsev == 5 ~ "Absence or lack of personnel",
-           maxsev == 6 ~ "Problems with material or supply",
-           maxsev == 7 ~ "Mistakes",
-           maxsev == 8 ~ "Other"
-         )) %>%
-  mutate(.,
-         edu_descr = case_when(
-           t1edu == 1 ~ "Primary school",
-           t1edu == 2 ~ "Secondary school",
-           t1edu == 3 ~ "Technical school diploma",
-           t1edu == 4 ~ "University degree",
-           t1edu == 5 ~ "Doctorate degree",
-           t1edu == 6 ~ "Other"
-         )) %>%
-  mutate(.,
-         own_descr = case_when(
-           t1own == 1 ~ "Single owner",
-           t1own == 2 ~ "Co-owned venture",
-           t1own == 3 ~ "Other"
-         )) %>%
-  mutate(.,
-         sector_descr = case_when(
-           t1sector == 1 ~ "Information, Communications, \nor Technology", 
-           t1sector == 2 ~ "Finance, Real Estate, or \nBusiness Services", 
-           t1sector == 3 ~ "Health, Education, Government, \nor Social and Consumer \nServices",
-           t1sector == 4 ~ "Wholesale, Retail", 
-           t1sector == 5 ~ "Manufacturing, Logistics", 
-           t1sector == 6 ~ "Agriculture, Extractive, or \nConstruction", 
-           t1sector == 7 ~ "Other"
-         )) %>%
+  set_value_labels(maxsev = c("Financial difficulties" = 1, 
+                              "Conflicts with clients, stakeholders, or colleagues" = 2,
+                              "Conflicts between clients, stakeholders, or colleagues" = 3,
+                              "Legal issues" = 4,
+                              "Absence or lack of personnel" = 5,
+                              "Problems with material or supply" = 6,
+                              "Mistakes" = 8,
+                              "Other" = 9),
+                   t1edu = c("Primary school" = 1,
+                             "Secondary school" = 2,
+                             "Technical school diploma" = 3,
+                             "University degree" = 4,
+                             "Doctorate degree" = 5,
+                             "Other" = 6),
+                   t1own = c("Single owner" = 1,
+                             "Co-owned venture" = 2,
+                             "Other" = 3),
+                   t1sector = c("Information, Communications, \nor Technology" = 1, 
+                                "Finance, Real Estate, or \nBusiness Services" = 2, 
+                                "Health, Education, Government, \nor Social and Consumer \nServices" = 3,
+                                "Wholesale, Retail" = 4, 
+                                "Manufacturing, Logistics" = 5, 
+                                "Agriculture, Extractive, or \nConstruction" = 6, 
+                                "Other" = 7)) 
   # rename columns for input selection in app 
-  rename(
-    "Event_description" = t1evdes,
-    "Severest_event" = maxsev_descr,
+df <- df_orig %>%
+rename(
+    "Event description" = t1evdes,
+    "Severest event" = maxsev,
     "Age" = t1age,
-    "Event_disruptiveness" = t1disrup,
-    "Education_level" = edu_descr,
-    "Event_novelty" = t1novel,
-    "Co-ownership" = own_descr,
-    "Event_performance impact" = t1perfo,
-    "Problem_solved" = t1probsolv,
-    "Industry" = sector_descr,
-    "Business_age" = t1timebuiss,
-    "Job satisfaction" = overallsat
+    "Event disruptiveness" = t1disrup,
+    "Event novelty" = t1novel,
+    "Event performance impact" = t1perfo,
+    "Problem solved" = t1probsolv,
+    "Business age" = t1timebuiss,
+    "Job satisfaction" = overallsat,
+    "Education level" = t1edu,
+    "Co-ownership" = t1own,
+    "Industry" = t1sector
   ) %>% 
   mutate(`Average event severity` = round(t1meansev,0)) %>%
   mutate(`Job strain` = round(t1jobstr,0)) %>%
-  select(-maxsev, -t1edu, -t1own, -t1sector, - t1meansev) %>%
-  drop_na(Age, `Job satisfaction`, `Job strain`, `Average event severity`)
-  
+  drop_na(Age, `Job satisfaction`, `Job strain`, `Average event severity`) %>%
+  set_value_labels(`Job satisfaction` = c("extremely dissatisfied" = 1,
+                                          "somewhat dissatisfied" = 2,
+                                          "neither satisfied \nnor dissatisfied" = 3,
+                                          "somewhat satisfied" = 4,
+                                          "extremely satisfied" = 5),
+                   `Job strain` = c("never feeling strained" = 1, 
+                                    "sometimes feeling strained" = 2,
+                                    "about half of the \ntime feeling strained" = 3, 
+                                    "most of the time \nfeeling strained" = 4, 
+                                    "always feeling strained" = 5))
 
 # Write data   ---------------------------------------------------------
 rels <- get_reliabilities(T123) # reliabilities
 write.csv(rels, "reliabilities.csv") 
 write_sav(T123, "df_full_raw.sav") # full data set 
-write.csv(df_orig, "comp_df.csv") # composite data
+write_sav(df_orig, "comp_df.sav") # composite data
 
 
 usethis::use_data(df, overwrite = TRUE, internal = TRUE) # composite data for internal use in App 

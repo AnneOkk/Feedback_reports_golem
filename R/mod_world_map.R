@@ -7,32 +7,37 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-#' @import ggplot2 sf
+#' @import ggplot2 sf sjlabelled
+
 
 mod_world_map_ui <- function(id, df){
   ns <- NS(id)
-  var_options <- c("Age" = "Age",
-               "Job satisfaction" = "Job satisfaction",
-               "Job strain" = "Job strain",
-               "Average event severity" = "Average event severity")
+  #categorical variable selection
+  var_options1 <- c("Age" = "Age",
+                   "Education level" = "Education.level",
+                   "Co-ownership" = "Co.ownership",
+                   "Industry" = "Industry",
+                   "Job satisfaction" = "Job.satisfaction",
+                   "Job strain" = "Job.strain"
+                    )
   shiny::tagList(
     div(style="display:inline-block", # inline block to show selections side by side instead of above each other
         selectInput(ns("select_var1"), 
                     # second select variable for size (continuous)
                     label = "Select variable to plot:", 
-                    choices =  var_options,
-                    selected = var_options[1])),
-    plotOutput(ns("plot"), 
+                    choices =  var_options1,
+                    selected = var_options1[1])
+        ),
+  plotOutput(ns("plot"), 
                click = ns("plot1_click"),
                dblclick = ns("plot1_dblclick"),
                brush = brushOpts(
                  id = ns("plot1_brush"),
                  resetOnNew = TRUE,
-                 fill = "#FDE725FF",
-               )),
-    downloadButton('downloadplot', label = 'Download Plot'),
-    actionButton(ns("clearBrush"), "Clear selection"),  
-    actionButton(ns("resetPlot"), "Reset plot"))
+                 fill = "#FDE725FF")
+               ),
+  downloadButton('downloadplot', label = 'Download Plot')
+  )
 }
     
 #' world_map Server Functions
@@ -45,28 +50,60 @@ mod_world_map_server <- function(id, df, world_df){
                              y = c(min(df[, "LocationLat"], na.rm = T), max(df[, "LocationLat"], na.rm = T))) # set initial ranges for the world map
     size <- reactiveValues(height = 400, width = 1000) # set initial plot height and width (no clicking)
     
-    selected_var1 <- reactive(input$select_var1) # first selected variable
-    
-    # make plot
+    selected_var1 <- reactive(input$select_var1) # selected variable
+
+        
     output$plot <- renderPlot({
+      df <- sjlabelled::remove_all_labels(df) # remove all labels (labelled cannot be handled by ggplot?)
       # assign breaks and labels for selected variable 
       breaks <- if(selected_var1() == "Age"){
         c(20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70)
-      } else if(selected_var1() == "Job strain"){
-        sort(unique(cut(df[,selected_var1()], 4, labels = FALSE))) # create 5 bins for all selected variables
-      } else {
-        sort(unique(cut(df[,selected_var1()], 5, labels = FALSE))) # create 5 bins for all selected variables
-      } 
+      } else if(selected_var1() == "Education.level"){
+        c(2, 3, 4, 5, 6)
+      } else if(selected_var1() == "Co.ownership"){
+        c(1, 2)
+      } else if(selected_var1() == "Industry"){
+        c(1, 2, 3, 4, 5, 6, 7)
+      } else if (selected_var1() == "Job.satisfaction"){
+        c(1, 2, 3, 4, 5)
+      } else if(selected_var1() == "Job.strain"){
+        c(1, 2, 3, 4, 5)
+      }
 
       labels <- if(selected_var1() == "Age"){
         c("20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70")
-      }else if (selected_var1() == "Job satisfaction") {
-        c("extremely dissatisfied",  "somewhat dissatisfied", "neither satisfied \nnor dissatisfied", "somewhat satisfied", "extremely satisfied")
-      }else if (selected_var1() == "Job strain") {
-        c("never feeling strained", "sometimes feeling strained", "most of the time \nfeeling strained", "always feeling strained")
-      }else{
-        c("not at all severe", "a little severe", "somewhat severe", "very severe", "extremely severe")
+      } else if(selected_var1() == "Education.level"){
+        c("Secondary school", "Technical school diploma", "University degree", "Doctorate degree", "Other")
+      } else if(selected_var1() == "Co.ownership"){
+        c("Single owner", "Co-owned venture")
+      } else if(selected_var1() == "Industry"){
+        c("Information, Communications, \nor Technology", 
+          "Finance, Real Estate, or Business \nServices", 
+          "Health, Education, Government, \nor Social and Consumer Services", 
+          "Wholesale, Retail",
+          "Manufacturing, Logistics",
+          "Agriculture, Extractive, or \nConstruction",
+          "Other")
+      } else if(selected_var1() == "Job.satisfaction"){
+        c("extremely dissatisfied", 
+          "somewhat dissatisfied",
+          "neither satisfied \nnor dissatisfied",
+          "somewhat satisfied",                  
+          "extremely satisfied")
+      } else if(selected_var1() == "Job.strain"){
+        c("never feeling strained",
+          "sometimes feeling strained",
+          "about half of the \ntime feeling strained",
+          "most of the time \nfeeling strained",
+          "always feeling strained")
       }
+      
+      range <- if(selected_var1() == "Education.level" || selected_var1() == "Co.ownership" || selected_var1() == "Industry"){
+        c(6, 6) 
+      } else {
+        c(4, 13)
+      }
+      
       
       ggplot2::ggplot(data = world_df) +
         ggplot2::geom_map(
@@ -84,7 +121,7 @@ mod_world_map_server <- function(id, df, world_df){
           shape = 21) + 
         guides(color = guide_legend(override.aes = list(size = 10))) +
         scale_fill_viridis_c(guide = "legend", breaks = breaks, labels = labels) +
-        scale_size_continuous(range = c(5, 11), breaks = breaks, labels = labels) + 
+        scale_size_continuous(range = range, breaks = breaks, labels = labels) + 
         # set limits for the world map latitude and longitude
         scale_x_continuous(limits = ranges$x) + 
         scale_y_continuous(limits = ranges$y) +
@@ -92,7 +129,9 @@ mod_world_map_server <- function(id, df, world_df){
         labs(fill = selected_var1(), 
              size = selected_var1()) +
         theme(legend.text = element_text(size=12, color = "white")) + 
-        theme(legend.title = element_text(size=14, color = "white"))
+        theme(legend.title = element_text(size=15, color = "white")) + 
+        theme(legend.title.align = 0.5) +
+        theme(legend.key.size = unit(1.1, "cm"))  # increases vertical space between legend items
     }, 
     bg="transparent", 
     height = reactive(size$height), 
