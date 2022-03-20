@@ -12,17 +12,18 @@
 mod_world_map_ui <- function(id, df){
   ns <- NS(id)
   var_options <- c("Age" = "Age",
-               "Job satisfaction" = "t1jobsa",
-               "Job strain" = "t1jobstr",
-               "Average event severity" = "Mean_event_severity")
+               "Job satisfaction" = "Job satisfaction",
+               "Job strain" = "Job strain",
+               "Average event severity" = "Average event severity")
   shiny::tagList(
     div(style="display:inline-block", # inline block to show selections side by side instead of above each other
         selectInput(ns("select_var1"), 
                     # second select variable for size (continuous)
                     label = "Select variable to plot:", 
                     choices =  var_options,
-                   selected = var_options[1])),
-    plotOutput(NS(id, "plot"), 
+                    selected = var_options[1])),
+    plotOutput(ns("plot"), 
+               click = ns("plot1_click"),
                dblclick = ns("plot1_dblclick"),
                brush = brushOpts(
                  id = ns("plot1_brush"),
@@ -30,8 +31,8 @@ mod_world_map_ui <- function(id, df){
                  fill = "#FDE725FF",
                )),
     downloadButton('downloadplot', label = 'Download Plot'),
-    actionButton("reset", "Default colours", icon = icon("undo"))
-  )
+    actionButton(ns("clearBrush"), "Clear selection"),  
+    actionButton(ns("resetPlot"), "Reset plot"))
 }
     
 #' world_map Server Functions
@@ -42,29 +43,31 @@ mod_world_map_server <- function(id, df, world_df){
     ns <- session$ns
     ranges <- reactiveValues(x = c(min(df[, "LocationLon"], na.rm = T), max(df[, "LocationLon"], na.rm = T)), 
                              y = c(min(df[, "LocationLat"], na.rm = T), max(df[, "LocationLat"], na.rm = T))) # set initial ranges for the world map
-    size <- reactiveValues(height = 300, width = 900) # set initial plot height and width (no clicking)
+    size <- reactiveValues(height = 400, width = 1000) # set initial plot height and width (no clicking)
     
     selected_var1 <- reactive(input$select_var1) # first selected variable
     
-      
     # make plot
     output$plot <- renderPlot({
       # assign breaks and labels for selected variable 
       breaks <- if(selected_var1() == "Age"){
-        c(20, 30, 40, 50, 60, 70, 80, 90)
+        c(20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70)
+      } else if(selected_var1() == "Job strain"){
+        sort(unique(cut(df[,selected_var1()], 4, labels = FALSE))) # create 5 bins for all selected variables
       } else {
-        quantile(df[, selected_var1()], prob=c(0.2, 0.4, 0.6, 0.8, 1.0), na.rm = T)
-      }
+        sort(unique(cut(df[,selected_var1()], 5, labels = FALSE))) # create 5 bins for all selected variables
+      } 
 
       labels <- if(selected_var1() == "Age"){
-        c(20, 30, 40, 50, 60, 70, 80, 90)
-      }else if (selected_var1() == "t1jobsa") {
-        c("extremely dissatisfied", "somewhat dissatisfied", "neither satisfied nor dissatisfied", "somewhat satisfied", "extremely satisfied")
-      }else if (selected_var1() == "t1jobstr") {
-        c("never feeling strained", "sometimes feeling strained", "about half of the time feeling strained", "most of the time feeling strained", "always feeling strained")
+        c("20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70")
+      }else if (selected_var1() == "Job satisfaction") {
+        c("extremely dissatisfied",  "somewhat dissatisfied", "neither satisfied \nnor dissatisfied", "somewhat satisfied", "extremely satisfied")
+      }else if (selected_var1() == "Job strain") {
+        c("never feeling strained", "sometimes feeling strained", "most of the time \nfeeling strained", "always feeling strained")
       }else{
         c("not at all severe", "a little severe", "somewhat severe", "very severe", "extremely severe")
       }
+      
       ggplot2::ggplot(data = world_df) +
         ggplot2::geom_map(
           map = world_df,
@@ -79,33 +82,49 @@ mod_world_map_server <- function(id, df, world_df){
                         ),
           alpha = 0.7, 
           shape = 21) + 
+        guides(color = guide_legend(override.aes = list(size = 10))) +
         scale_fill_viridis_c(guide = "legend", breaks = breaks, labels = labels) +
-        scale_size_continuous(range = c(1, 12), breaks = breaks, labels = labels) + 
+        scale_size_continuous(range = c(5, 11), breaks = breaks, labels = labels) + 
         # set limits for the world map latitude and longitude
         scale_x_continuous(limits = ranges$x) + 
         scale_y_continuous(limits = ranges$y) +
         theme_void() + # remove background
         labs(fill = selected_var1(), 
-             size = selected_var1())  
+             size = selected_var1()) +
+        theme(legend.text = element_text(size=12, color = "white")) + 
+        theme(legend.title = element_text(size=14, color = "white"))
     }, 
     bg="transparent", 
     height = reactive(size$height), 
     width = reactive(size$width)
     )
     
-    observeEvent(input$plot1_dblclick, {
+    observeEvent(input$plot1_brush, {
       brush <- input$plot1_brush
       if (!is.null(brush)) {
         ranges$x <- c(brush$xmin, brush$xmax)
         ranges$y <- c(brush$ymin, brush$ymax)
+        size$height = 400 # scale map based on brush 
+        size$width  = 700
       } else {
         ranges$x <- c(min(df[, "LocationLon"], na.rm = T), max(df[, "LocationLon"], na.rm = T))
         ranges$y <- c(min(df[, "LocationLat"], na.rm = T), max(df[, "LocationLat"], na.rm = T))
       }
     })
+    observeEvent(input$clearBrush, {
+      session$resetBrush("plotBrush")
+    })
+    
+    observeEvent(input$resetPlot, {
+      session$resetBrush("plotBrush")
+      brush <<- NULL
+    })
+
     observeEvent(input$plot1_dblclick, {
-      size$height = 300 # adjust map size based on double click 
-      size$width  = 500
+      ranges$x <- c(min(df[, "LocationLon"], na.rm = T), max(df[, "LocationLon"], na.rm = T))
+      ranges$y <- c(min(df[, "LocationLat"], na.rm = T), max(df[, "LocationLat"], na.rm = T))
+      size$height = 400 # rescale map back to original based on double click 
+      size$width  = 1000
     })
     })
 }

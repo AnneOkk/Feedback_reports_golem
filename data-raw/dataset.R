@@ -195,6 +195,9 @@ names(T123) <- gsub("(threat)([1-9])", "\\1_\\2", names(T123)) %>%
 # use age labels for age variable
 T123$t1age <- as.numeric(names(attr(T123$t1age_1,"labels")[match(T123$t1age_1,attr(T123$t1age_1,"labels"))]))
   
+
+# make one overall satisfaction with enrepreneurial job column 
+T123$overallsat <- T123$t1jobsa_1
 # Remove irrelevant/ not anonymous variables
 T123 <- T123 %>% 
   # coalesce location variables from different time points
@@ -210,7 +213,7 @@ T123 <- T123 %>%
 
 # Reliabilities  -----------------------------------------------------
 get_reliabilities <- function(df) {
-  T123_alph <- df %>% select(-matches("evdes|newcol|t1occ|found|own|sector|gender|lang|edu|newcol|preocc|evcat|timebuiss|age|novel|disrup|perfo|probsolv|cope|goodbye|maxsev|LocationLat|LocationLon|location|t1meansev")) %>%
+  T123_alph <- df %>% select(-matches("overallsat|evdes|newcol|t1occ|found|own|sector|gender|lang|edu|newcol|preocc|evcat|timebuiss|age|novel|disrup|perfo|probsolv|cope|goodbye|maxsev|LocationLat|LocationLon|location|t1meansev")) %>%
   ## Remove columns with more than 60% NA
   .[, which(colMeans(!is.na(.)) > 0.4)]
   alph_split <- T123_alph %>% remove_all_labels(.) %>%
@@ -232,6 +235,8 @@ make_comp_df <- function(df) {
 }
 
 df <- make_comp_df(T123)
+df_orig <- make_comp_df(T123)
+df$t1jobsa_overall <- T123$overallsat
 df <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df ) %>%  
   mutate_at(vars(matches("LocationL")),
             ~(as.numeric(.))) %>%
@@ -281,22 +286,25 @@ df <- T123 %>% select(t1evdes, LocationLon, LocationLat) %>% cbind(., df ) %>%
     "Age" = t1age,
     "Event_disruptiveness" = t1disrup,
     "Education_level" = edu_descr,
-    "Mean_event_severity" = t1meansev,
     "Event_novelty" = t1novel,
     "Co-ownership" = own_descr,
     "Event_performance impact" = t1perfo,
     "Problem_solved" = t1probsolv,
     "Industry" = sector_descr,
-    "Business_age" = t1timebuiss
+    "Business_age" = t1timebuiss,
+    "Job satisfaction" = overallsat
   ) %>% 
-  select(-maxsev, -t1edu, -t1own, -t1sector)
+  mutate(`Average event severity` = round(t1meansev,0)) %>%
+  mutate(`Job strain` = round(t1jobstr,0)) %>%
+  select(-maxsev, -t1edu, -t1own, -t1sector, - t1meansev) %>%
+  drop_na(Age, `Job satisfaction`, `Job strain`, `Average event severity`)
   
 
 # Write data   ---------------------------------------------------------
 rels <- get_reliabilities(T123) # reliabilities
 write.csv(rels, "reliabilities.csv") 
 write_sav(T123, "df_full_raw.sav") # full data set 
-write.csv(df, "comp_df.csv") # composite data
+write.csv(df_orig, "comp_df.csv") # composite data
 
 
 usethis::use_data(df, overwrite = TRUE, internal = TRUE) # composite data for internal use in App 
