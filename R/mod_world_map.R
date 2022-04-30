@@ -77,12 +77,12 @@ mod_world_map_server <- function(id, df, world_df){
       } else if(selected_var1() == "Co.ownership"){
         c("Single owner", "Co-owned venture")
       } else if(selected_var1() == "Industry"){
-        c("Information, Communications, \nor Technology", 
-          "Finance, Real Estate, or Business \nServices", 
-          "Health, Education, Government, \nor Social and Consumer Services", 
+        c("Information, Technology", 
+          "Finance, Real Estate", 
+          "Social and Consumer Services", 
           "Wholesale, Retail",
           "Manufacturing, Logistics",
-          "Agriculture, Extractive, or \nConstruction",
+          "Agriculture, Construction",
           "Other")
       } else if(selected_var1() == "Job.satisfaction"){
         c("extremely dissatisfied", 
@@ -128,8 +128,8 @@ mod_world_map_server <- function(id, df, world_df){
         theme_void() + # remove background
         labs(fill = selected_var1(), 
              size = selected_var1()) +
-        theme(legend.text = element_text(size=12, color = "white")) + 
-        theme(legend.title = element_text(size=15, color = "white")) + 
+        theme(legend.text = element_text(size=14, color = "white")) + 
+        theme(legend.title = element_text(size=16, color = "white")) + 
         theme(legend.title.align = 0.5) +
         theme(legend.key.size = unit(1.1, "cm"))  # increases vertical space between legend items
     }, 
