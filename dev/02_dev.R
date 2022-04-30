@@ -19,12 +19,12 @@ usethis::use_package("sjlabelled")
 
 ## Add modules ----
 ## Create a module infrastructure in R/
-golem::add_module( name = "world_map" ) # Name of the module
+golem::add_module( name = "xgboost" ) # Name of the module
 golem::add_module( name = "world_map2" ) # Name of the module
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
-golem::add_fct( "world_map") 
+golem::add_fct( "xgboost") 
 golem::add_utils( "textInput2" )
 
 ## External resources
