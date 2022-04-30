@@ -6,6 +6,7 @@ library(readr)
 library(stringr)
 library(caret)
 library(zoo)
+library(ggplot2)
 
 
 # Select variables --------------------------------------------------------
@@ -69,8 +70,8 @@ y_t1jobsa_train <- as.vector(y_t1jobsa_train[['t1jobsa']])
 y_t1jobstr_train <- train['t1jobstr']
 y_t1jobstr_train <- as.vector(y_t1jobstr_train[['t1jobsa']])
 
-y_solved <- train['Problem solved']
-y_solved <- as.vector(y_solved[['t1jobsa']])
+y_solved_train <- train['Problem solved']
+y_solved_train <- as.vector(y_solved[['t1jobsa']])
 
 X_train <- subset(train, select=-c(t1jobsa, t1jobstr, `Problem solved`)) %>% as.matrix(.)
 
@@ -83,7 +84,7 @@ y_t1jobstr_test <- as.vector(y_t1jobstr_test[['t1jobsa']])
 y_solved <- test['Problem solved']
 y_solved <- as.vector(y_solved[['t1jobsa']])
 
-X_test <- subset(test, select=-c(t1jobsa, t1jobstr, `Problem solved`))
+X_test <- subset(test, select=-c(t1jobsa, t1jobstr, `Problem solved`)) %>% as.matrix(.)
 
 
 
@@ -101,6 +102,45 @@ xgb <- xgboost(X_train,
                eta = .25
 )
 
+
+# Predict test ------------------------------------------------------------
+# predict values in test set
+y_pred <- predict(xgb, data.matrix(X_test))
+
+
+# Measure model performance -----------------------------------------------
+mse = mean((y_t1jobsa_test - y_pred)^2)
+mae = caret::MAE(y_t1jobsa_test, y_pred)
+rmse = caret::RMSE(y_t1jobsa_test, y_pred)
+
+cat("MSE: ", mse, "MAE: ", mae, " RMSE: ", rmse)
+
+
+# Plot model prediction ---------------------------------------------------
+
+options(repr.plot.width=8, repr.plot.height=4)
+# Plot predictions vs test data
+my_data <- as.data.frame(cbind(y_t1jobsa_test, y_pred))
+
+ggplot(my_data,aes(y_pred, y_t1jobsa_test)) + geom_point(color = "darkred", alpha = 0.5) + 
+  geom_smooth(method=lm)+ ggtitle('Linear Regression ') + ggtitle("Extreme Gradient Boosting: Prediction vs Test Data") +
+  xlab("Predecited Job satisfaction ") + ylab("Observed Job satisfaction") + 
+  theme(plot.title = element_text(color="darkgreen",size=16,hjust = 0.5),
+        axis.text.y = element_text(size=12), axis.text.x = element_text(size=12,hjust=.5),
+        axis.title.x = element_text(size=14), axis.title.y = element_text(size=14))
+
+
+# Inspect tree ------------------------------------------------------------
+model <- xgb.dump(xgb, with_stats = T)
+model[1:10] #This statement prints top 10 nodes of the model
+
+# Get the feature real names
+names <- dimnames(data.matrix(X_train))[[2]]
+
+# Compute feature importance matrix
+importance_matrix <- xgb.importance(names, model = xgb)
+# Nice graph
+xgb.plot.importance(importance_matrix[1:10,])
 
 
 
