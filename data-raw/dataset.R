@@ -300,10 +300,10 @@ rename(
 
 # Write data   ---------------------------------------------------------
 rels <- get_reliabilities(T123) # reliabilities
-write.csv(rels, "reliabilities.csv") 
-write_sav(T123, "df_full_raw.sav") # full data set 
-write_sav(df_orig, "comp_df.sav") # composite data
-write.csv(df, "df.csv") 
+write.csv(rels, "other_data/reliabilities.csv") 
+write_sav(T123, "other_data/df_full_raw.sav") # full data set 
+write_sav(df_orig, "other_data/comp_df.sav") # composite data
+write.csv(df, "other_data/df.csv") 
 
 
 usethis::use_data(df, overwrite = TRUE, internal = TRUE) # composite data for internal use in App 
@@ -311,5 +311,4 @@ usethis::use_data(df, overwrite = TRUE, internal = TRUE) # composite data for in
 world_df <- map_data("world")
 
 usethis::use_data(world_df, overwrite = TRUE, internal = FALSE) # world data for world map  
-
 
