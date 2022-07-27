@@ -20,19 +20,24 @@ mod_wordcloud_ui <- function(id, df){
                    "Mistakes or mishaps" = "mis",
                    "Other" = "oth")
   shiny::tagList(
+    div(style = "display: inline-block; width: 300px;",
     selectInput(ns("selection"),
                 label = "Choose an event category:",
                 choices = var_options1,
-                selected = var_options1[1]),
+                selected = var_options1[1])),
     actionButton(ns("update"), 
-                 "Change"),
+                 "Change",
+                 icon("paper-plane"), 
+                 style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
     hr(),
-    sliderInput(ns("freq"),
+    div(style = "display: inline-block; width: 300px;",
+        sliderInput(ns("freq"),
                 "Minimum Frequency:",
-                min = 1,  max = 5, value = 1),
-    sliderInput(ns("max"),
+                min = 1,  max = 5, value = 1)),
+    div(style = "display: inline-block; width: 300px;",
+        sliderInput(ns("max"),
                 "Maximum Number of Words:",
-                min = 1,  max = 20,  value = 13),
+                min = 1,  max = 20,  value = 13)),
     plotOutput(ns("plot"))
     )
   }
@@ -89,10 +94,11 @@ mod_wordcloud_server <- function(id, df){
     
     output$plot <- renderPlot({
       v <- terms()
-      wordcloud_rep(names(v), v, scale = c(4,0.5),
+      par(bg = "#353c42")
+      wordcloud_rep(names(v), v, scale = c(6,1),
                     min.freq = input$freq, max.words = input$max,
-                    colors = RColorBrewer::brewer.pal(8, "Dark2"))
-    })
+                    colors = viridis::viridis_pal(option = "D")(5))
+    }, height = 600, width = 600)
   })
 }
     

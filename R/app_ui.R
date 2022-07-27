@@ -12,12 +12,13 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # List the first level UI elements here 
     bs4Dash::dashboardPage(
+      freshTheme = customize_theme(),
       title = "Entrepreneur Feedback Reports",
       fullscreen = FALSE,
       help = FALSE,
-      preloader = list(html = tagList(waiter::spin_solar(), "Loading ..."), color = "#21918c"),
-      dark = TRUE,
-      freshTheme = customize_theme(),
+      preloader = list(html = tagList(waiter::spin_solar(), "Loading ..."), 
+                       color = "#21918c"),
+      dark = NULL,
       header = bs4Dash::dashboardHeader(
         title = bs4Dash::dashboardBrand(
           title = "Feedback Reports",
