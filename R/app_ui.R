@@ -47,6 +47,14 @@ app_ui <- function(request) {
           )
         ),
         bs4Dash::sidebarMenu(
+          id = "events",
+          bs4Dash::menuItem(
+            text = "Event texts",
+            tabName = "event",
+            icon = icon("user-friends")
+          )
+        ),
+        bs4Dash::sidebarMenu(
           id = "part_id",
           bs4Dash::menuItem(
             mod_ID_selector_ui("ID_selector_ui_1"),
@@ -104,6 +112,18 @@ app_ui <- function(request) {
                   h5(style="text-align: center;","World data"),
                   mod_world_map_ui("world_map_ui_1", df)
                 )
+            )
+          ),
+          bs4Dash::tabItem(
+            tabName = "event",
+            fluidRow(
+              column(
+                offset = 0.2,
+                width = 11, title = "Events",
+                height = "20px",
+                mod_wordcloud_ui("wordcloud_1"),
+                br()
+              )
             )
           )
         )

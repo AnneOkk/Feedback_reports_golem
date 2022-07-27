@@ -4,7 +4,7 @@
 #'     DO NOT REMOVE.
 #' @noRd
 
-app_server <- function( input, output, session ) {
+app_server <- function(input, output, session) {
   observeEvent(input$reload, {
     session$reload()
     })
@@ -17,4 +17,5 @@ app_server <- function( input, output, session ) {
   mod_gender_plot_server("gender_plot_ui_1", df)
   mod_sample_info_server("sample_info_ui_1", df)
   mod_world_map_server("world_map_ui_1", df, world_df)
+  mod_wordcloud_server("wordcloud_1", evdes_df)
 }
