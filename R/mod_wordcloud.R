@@ -25,20 +25,31 @@ mod_wordcloud_ui <- function(id, df){
                 label = "Choose an event category:",
                 choices = var_options1,
                 selected = var_options1[1])),
+    br(),
     actionButton(ns("update"), 
-                 "Change",
-                 icon("paper-plane"), 
-                 style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-    hr(),
-    div(style = "display: inline-block; width: 300px;",
+                 "Update",
+                 icon("refresh"), 
+                 style = "color: #ffffff; background-color: #337ab7; border-color: #2e6da4"),
+    fluidRow(
+      column(
+        6,
+        plotOutput(ns("plot"))
+      ),
+      column(
+        4,
+        offset = 1,
+        br(),
+        br(),
+        br(),
+        br(),
         sliderInput(ns("freq"),
-                "Minimum Frequency:",
-                min = 1,  max = 5, value = 1)),
-    div(style = "display: inline-block; width: 300px;",
+                    "Minimum Frequency:",
+                    min = 1,  max = 4, value = 1),
         sliderInput(ns("max"),
-                "Maximum Number of Words:",
-                min = 1,  max = 20,  value = 13)),
-    plotOutput(ns("plot"))
+                    "Maximum Number of Words:",
+                    min = 1,  max = 15,  value = 15)
+        )
+      )
     )
   }
     
@@ -95,10 +106,10 @@ mod_wordcloud_server <- function(id, df){
     output$plot <- renderPlot({
       v <- terms()
       par(bg = "#353c42")
-      wordcloud_rep(names(v), v, scale = c(6,1),
+      wordcloud_rep(names(v), v, scale = c(4.0,1.0),
                     min.freq = input$freq, max.words = input$max,
-                    colors = viridis::viridis_pal(option = "D")(5))
-    }, height = 600, width = 600)
+                    colors = viridis::viridis_pal(option = "D")(6))
+    }, height = 470, width = 500)
   })
 }
     

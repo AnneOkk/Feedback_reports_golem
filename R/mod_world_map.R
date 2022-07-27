@@ -48,7 +48,7 @@ mod_world_map_server <- function(id, df, world_df){
     ns <- session$ns
     ranges <- reactiveValues(x = c(min(df[, "LocationLon"], na.rm = T), max(df[, "LocationLon"], na.rm = T)), 
                              y = c(min(df[, "LocationLat"], na.rm = T), max(df[, "LocationLat"], na.rm = T))) # set initial ranges for the world map
-    size <- reactiveValues(height = 400, width = 1000) # set initial plot height and width (no clicking)
+    size <- reactiveValues(height = 340, width = 800) # set initial plot height and width (no clicking)
     
     selected_var1 <- reactive(input$select_var1) # selected variable
 
@@ -119,7 +119,7 @@ mod_world_map_server <- function(id, df, world_df){
                         ),
           alpha = 0.7, 
           shape = 21) + 
-        guides(color = guide_legend(override.aes = list(size = 10))) +
+        guides(color = guide_legend(override.aes = list(size = 9))) +
         scale_fill_viridis_c(guide = "legend", breaks = breaks, labels = labels) +
         scale_size_continuous(range = range, breaks = breaks, labels = labels) + 
         # set limits for the world map latitude and longitude
@@ -128,8 +128,8 @@ mod_world_map_server <- function(id, df, world_df){
         theme_void() + # remove background
         labs(fill = selected_var1(), 
              size = selected_var1()) +
-        theme(legend.text = element_text(size=14, color = "white")) + 
-        theme(legend.title = element_text(size=16, color = "white")) + 
+        theme(legend.text = element_text(size=12, color = "white")) + 
+        theme(legend.title = element_text(size=14, color = "white")) + 
         theme(legend.title.align = 0.5) +
         theme(legend.key.size = unit(1.1, "cm"))  # increases vertical space between legend items
     }, 

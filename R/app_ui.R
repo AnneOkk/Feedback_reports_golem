@@ -50,9 +50,9 @@ app_ui <- function(request) {
         bs4Dash::sidebarMenu(
           id = "events",
           bs4Dash::menuItem(
-            text = "Event texts",
+            text = "Negative events",
             tabName = "event",
-            icon = icon("user-friends")
+            icon = icon("cloud-moon-rain")
           )
         ),
         bs4Dash::sidebarMenu(
@@ -81,8 +81,8 @@ app_ui <- function(request) {
               tabName = "info",
               fluidRow(
                 column(
-                  offset = 0.2,
-                  width = 11, title = "Participants",
+                  12, 
+                  title = "Participants",
                   height = "20px",
                   mod_sample_info_ui("sample_info_ui_1"),
                   br()
@@ -90,27 +90,29 @@ app_ui <- function(request) {
                 ),
               fluidRow(
                 column(
-                  4, 
+                  5, 
                   height = "70px",
-                  h5(style = "text-align: center;","Sample age"),
                   mod_age_hist_ui("age_hist_ui_1"),
                   icon("question-circle"),
                   age_text
                 ), 
                 column(
-                  4, 
+                  1, 
                   height = "70px",
-                  h5(style = "text-align: center;","Sample gender"),
+                ), 
+                column(
+                  5, 
+                  height = "70px",
                   mod_gender_plot_ui("gender_plot_ui_1"),
                   icon("question-circle"),
                   gender_text
                 )
               ),
+              br(),
               fluidRow(
                 column(
-                  8, 
+                  12, 
                   height = "90px",
-                  h5(style = "text-align: center;","World data"),
                   mod_world_map_ui("world_map_ui_1", df)
                 )
             )
@@ -119,17 +121,16 @@ app_ui <- function(request) {
             tabName = "event",
             fluidRow(
               column(
-                offset = 0.2,
-                width = 11, title = "Events",
-                height = "20px",
-                mod_wordcloud_ui("wordcloud_1", df),
-                br()
+                12, 
+                align = "left", 
+                title = "Events",
+                mod_wordcloud_ui("wordcloud_1", df)
               )
             )
+            )
           )
-        )
+          )
       )
-    )
   )
 }
 

@@ -34,7 +34,7 @@ mod_gender_plot_server <- function(id, df){
         plotly::plot_ly(df_gender, labels = ~lbls_gender, values = ~count_gender,            
                 marker = list(colors = viridis::viridis_pal(option = "D")(3),
                               line = list(color = '#FFFFFF', width = 1)), 
-                type = "pie", width = 500, height = 500) %>%
+                type = "pie", width = 450, height = 500) %>%
           plotly::layout(plot_bgcolor  = "rgba(0, 0, 0, 0)",
                  paper_bgcolor = "rgba(0, 0, 0, 0)", 
                  font = list(size = 14,

@@ -17,7 +17,7 @@ customize_theme <- function() {
       bg = "#f6f6f6",
       color = "#676767",
       hover_color = "#FFFFFF",
-      submenu_bg = "#272c30",
+      submenu_bg = "#353c42",
       submenu_color = "#FFFFFF",
       submenu_hover_color = "#FFFFFF"
     ),
