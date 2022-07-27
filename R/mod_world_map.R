@@ -21,7 +21,7 @@ mod_world_map_ui <- function(id, df){
                    "Job strain" = "Job.strain"
                     )
   shiny::tagList(
-    div(style="display:inline-block", # inline block to show selections side by side instead of above each other
+    div(style = "display:inline-block", # inline block to show selections side by side instead of above each other
         selectInput(ns("select_var1"), 
                     # second select variable for size (continuous)
                     label = "Select variable to plot:", 

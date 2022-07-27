@@ -12,6 +12,7 @@ library(zoo)
 library(lubridate)
 library(sf)
 library(labelled)
+library(udpipe)
 
 
 # Read in data ------------------------------------------------------------
@@ -29,20 +30,20 @@ read_data <- function(rel_directory, pattern) {
 # Get full df -------------------------------------------------------------
 transform_to_one_df <- function(df_list) {
   Events_T1 <- df_list[grep("EventT1", names(df_list))] %>% bind_rows() %>% as.data.frame(.) %>% 
-    transform(., newcol=paste(t1code_1, t1code_2, t1code_3, sep="_"), stringsAsFactors = FALSE) %>% 
+    transform(., newcol = paste(t1code_1, t1code_2, t1code_3, sep = "_"), stringsAsFactors = FALSE) %>% 
     replace_with_na(replace = list(newcol = "__")) %>% 
     mutate(., newcol = tolower(newcol))
   Events_T2 <- df_list[grep("EventT2", names(df_list))] %>% bind_rows() %>% as.data.frame(.) %>% 
-    transform(., newcol=paste(t2code_1, t2code_2, t2code_3, sep="_"), stringsAsFactors = FALSE) %>% 
+    transform(., newcol = paste(t2code_1, t2code_2, t2code_3, sep = "_"), stringsAsFactors = FALSE) %>% 
     replace_with_na(replace = list(newcol = "__")) %>% 
     mutate(., newcol = tolower(newcol))
   Events_T3 <- df_list[grep("EventT3", names(df_list))] %>% bind_rows() %>% as.data.frame(.) %>% 
-    transform(., newcol=paste(t3code_1, t3code_2, t3code_3, sep="_"), stringsAsFactors = FALSE) %>% 
+    transform(., newcol = paste(t3code_1, t3code_2, t3code_3, sep = "_"), stringsAsFactors = FALSE) %>% 
     replace_with_na(replace = list(newcol = "__")) %>% 
     mutate(., newcol = tolower(newcol))
   
   T12 = left_join(Events_T1, Events_T2, by = "newcol")
-  T123= left_join(T12, Events_T3, by = "newcol") %>%
+  T123 = left_join(T12, Events_T3, by = "newcol") %>%
     # remove all rows that have no event reported 
     subset(., t1event == 1) %>%
     # remove all rows that have duplicated newcol
@@ -74,9 +75,9 @@ rename_cols <- function(df){
   T123_event_stuff_no <- df %>% dplyr::select(!matches("maxsev|event|evcat|evdes|novel|disrup|perfo|cope|threat|emotionslast|threatlast|probsolv"))
   # change column names: threatlast, redundant '_'
   names(T123_event_stuff)  <- gsub("(^.*)(threatlast)([a-z]{3})(_[1-9]{1})(_1)", paste0("\\1", "\\2", "\\3", "\\4"), names(T123_event_stuff)) %>%
-    gsub("_1_", "_", fixed = T, perl=F, .) %>% 
-    gsub("_1_", "1_", fixed = T, perl=F, .) %>%
-    gsub("_2_", "2_", fixed = T, perl=F, .) %>%
+    gsub("_1_", "_", fixed = T, perl = F, .) %>% 
+    gsub("_1_", "1_", fixed = T, perl = F, .) %>%
+    gsub("_2_", "2_", fixed = T, perl = F, .) %>%
     
     # change event type names 
     gsub("(^.*)fin(_[0-9]+$)", paste0("\\1","\\2", "_1"), .) %>% 
@@ -88,9 +89,9 @@ rename_cols <- function(df){
     gsub("(^.*)mis(_[0-9]+$)", paste0("\\1","\\2", "_7"), .) %>%
     gsub("(^.*)oth(_[0-9]+$)", paste0("\\1","\\2", "_8"), .) %>%
     
-    gsub("(t[1-3]{1})(emotionslast)_([1-9]+)(_[0-9]{1})", paste0("\\1", "\\2", "\\3", "\\4"), fixed = F, perl=F, .) %>%
-    gsub("(t[1-3]{1})(threatlast)_([1-9]+)(_[0-9]{1})", paste0("\\1", "\\2", "\\3", "\\4"), fixed = F, perl=F, .) %>%
-    gsub("(t[1-3]{1})(threat)_([1-9]+)(_[0-9]{1})", paste0("\\1", "\\2", "\\3", "\\4"), fixed = F, perl=F, .)
+    gsub("(t[1-3]{1})(emotionslast)_([1-9]+)(_[0-9]{1})", paste0("\\1", "\\2", "\\3", "\\4"), fixed = F, perl = F, .) %>%
+    gsub("(t[1-3]{1})(threatlast)_([1-9]+)(_[0-9]{1})", paste0("\\1", "\\2", "\\3", "\\4"), fixed = F, perl = F, .) %>%
+    gsub("(t[1-3]{1})(threat)_([1-9]+)(_[0-9]{1})", paste0("\\1", "\\2", "\\3", "\\4"), fixed = F, perl = F, .)
   
   T123_event_stuff <- T123_event_stuff %>%
     pivot_longer(cols = -maxsev, names_to = c(".value", "index"), names_pattern = "(t[1-9]{1}[a-z]+._)(\\d$)") %>%
@@ -312,3 +313,28 @@ world_df <- map_data("world")
 
 usethis::use_data(world_df, overwrite = TRUE, internal = FALSE) # world data for world map  
 
+
+# Create annotation data for word map -------------------------------------
+
+ud_model <- udpipe_download_model(language = "english")
+ud_model <- udpipe_load_model(ud_model$file_model)
+
+evdes_df <- T123 %>% select(maxsev, t1evdes) %>% split(., .$maxsev, drop = TRUE) %>% lapply(., function(x) x[!(names(x) %in% c("maxsev"))])
+
+# annotation data for word cloud 
+anno1 <- udpipe_annotate(ud_model, x = evdes_df$`1`$t1evdes) 
+usethis::use_data(anno1, overwrite = TRUE, internal = FALSE) 
+anno2 <- udpipe_annotate(ud_model, x = evdes_df$`2`$t1evdes) 
+usethis::use_data(anno2, overwrite = TRUE, internal = FALSE)
+anno3 <- udpipe_annotate(ud_model, x = evdes_df$`3`$t1evdes) 
+usethis::use_data(anno3, overwrite = TRUE, internal = FALSE) 
+anno4 <- udpipe_annotate(ud_model, x = evdes_df$`4`$t1evdes) 
+usethis::use_data(anno4, overwrite = TRUE, internal = FALSE)
+anno5 <- udpipe_annotate(ud_model, x = evdes_df$`5`$t1evdes) 
+usethis::use_data(anno5, overwrite = TRUE, internal = FALSE) 
+anno6 <- udpipe_annotate(ud_model, x = evdes_df$`6`$t1evdes) 
+usethis::use_data(anno6, overwrite = TRUE, internal = FALSE)
+anno7 <- udpipe_annotate(ud_model, x = evdes_df$`7`$t1evdes) 
+usethis::use_data(anno7, overwrite = TRUE, internal = FALSE) 
+anno8 <- udpipe_annotate(ud_model, x = evdes_df$`8`$t1evdes) 
+usethis::use_data(anno8, overwrite = TRUE, internal = FALSE) 
