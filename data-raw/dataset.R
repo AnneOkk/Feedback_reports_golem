@@ -314,12 +314,3 @@ world_df <- map_data("world")
 usethis::use_data(world_df, overwrite = TRUE, internal = FALSE) # world data for world map  
 
 
-# Create annotation data for word map -------------------------------------
-
-ud_model <- udpipe_download_model(language = "english")
-ud_model <- udpipe_load_model(ud_model$file_model)
-
-evdes_df <- T123 %>% select(maxsev, t1evdes) %>% split(., .$maxsev, drop = TRUE) %>% lapply(., function(x) x[!(names(x) %in% c("maxsev"))])
-
-# annotation data for word cloud 
-usethis::use_data(evdes_df, overwrite = TRUE, internal = FALSE) 

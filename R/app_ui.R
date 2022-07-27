@@ -91,7 +91,7 @@ app_ui <- function(request) {
                 column(
                   4, 
                   height = "70px",
-                  h5(style="text-align: center;","Sample age"),
+                  h5(style = "text-align: center;","Sample age"),
                   mod_age_hist_ui("age_hist_ui_1"),
                   icon("question-circle"),
                   age_text
@@ -99,7 +99,7 @@ app_ui <- function(request) {
                 column(
                   4, 
                   height = "70px",
-                  h5(style="text-align: center;","Sample gender"),
+                  h5(style = "text-align: center;","Sample gender"),
                   mod_gender_plot_ui("gender_plot_ui_1"),
                   icon("question-circle"),
                   gender_text
@@ -109,7 +109,7 @@ app_ui <- function(request) {
                 column(
                   8, 
                   height = "90px",
-                  h5(style="text-align: center;","World data"),
+                  h5(style = "text-align: center;","World data"),
                   mod_world_map_ui("world_map_ui_1", df)
                 )
             )
@@ -121,7 +121,7 @@ app_ui <- function(request) {
                 offset = 0.2,
                 width = 11, title = "Events",
                 height = "20px",
-                mod_wordcloud_ui("wordcloud_1"),
+                mod_wordcloud_ui("wordcloud_1", df),
                 br()
               )
             )

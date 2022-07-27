@@ -7,16 +7,18 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-mod_wordcloud_ui <- function(id, evdes_df){
+#' @import wordcloud RColorBrewer
+#' 
+mod_wordcloud_ui <- function(id, df){
   ns <- NS(id)
-  var_options1 <- c("Financial difficulties" = "evdes_df$`1`$t1evdes",
-                   "Conflicts with clients, stakeholders or colleagues" = "evdes_df$`2`$t1evdes",
-                   "Conflicts between clients, stakeholders, or colleagues" = "evdes_df$`3`$t1evdes",
-                   "Legal issues" = "evdes_df$`4`$t1evdes",
-                   "Absence or a lack of personnel or support" = "evdes_df$`5`$t1evdes",
-                   "Problems related to material/ service supply or quality" = "evdes_df$`6`$t1evdes",
-                   "Mistakes or mishaps" = "evdes_df$`7`$t1evdes",
-                   "Other" = "`8`$t1evdes")
+  var_options1 <- c("Financial difficulties" = "fin",
+                   "Conflicts with clients, stakeholders or colleagues" = "wit",
+                   "Conflicts between clients, stakeholders, or colleagues" = "bet",
+                   "Legal issues" = "leg",
+                   "Absence or a lack of personnel or support" = "abs",
+                   "Problems related to material/ service supply or quality" = "mat",
+                   "Mistakes or mishaps" = "mis",
+                   "Other" = "oth")
   shiny::tagList(
     selectInput(ns("selection"),
                 label = "Choose an event category:",
@@ -27,10 +29,10 @@ mod_wordcloud_ui <- function(id, evdes_df){
     hr(),
     sliderInput(ns("freq"),
                 "Minimum Frequency:",
-                min = 1,  max = 50, value = 15),
+                min = 1,  max = 5, value = 1),
     sliderInput(ns("max"),
                 "Maximum Number of Words:",
-                min = 1,  max = 300,  value = 100),
+                min = 1,  max = 20,  value = 13),
     plotOutput(ns("plot"))
     )
   }
@@ -38,9 +40,38 @@ mod_wordcloud_ui <- function(id, evdes_df){
 #' wordcloud Server Functions
 #'
 #' @noRd 
-mod_wordcloud_server <- function(id, evdes_df){
+mod_wordcloud_server <- function(id, df){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    # Filter data based on selections
+    filtered_rows <- reactive({
+      data <- df
+      if (input$selection == "fin") {
+        data <- data[data$`Severest event` == 1,]
+      }
+      if (input$selection == "wit") {
+        data <- data[data$`Severest event` == 2,]
+      }
+      if (input$selection == "bet") {
+        data <- data[data$`Severest event` == 3,]
+      }
+      if (input$selection == "leg") {
+        data <- data[data$`Severest event` == 4,]
+      }
+      if (input$selection == "abs") {
+        data <- data[data$`Severest event` == 5,]
+      }
+      if (input$selection == "mat") {
+        data <- data[data$`Severest event` == 6,]
+      }
+      if (input$selection == "mis") {
+        data <- data[data$`Severest event` == 7,]
+      }
+      if (input$selection == "oth") {
+        data <- data[data$`Severest event` == 8,]
+      }
+      data %>% select(`Event description`)
+    })
     # Define a reactive expression for the document term matrix
     terms <- reactive({
       # Change when the "update" button is pressed...
@@ -49,18 +80,18 @@ mod_wordcloud_server <- function(id, evdes_df){
       isolate({
         withProgress({
           setProgress(message = "Processing corpus...")
-          getTermMatrix(input$selection)
+          getTermMatrix(filtered_rows())
         })
       })
     })
     # Make the wordcloud drawing predictable during a session
-    wordcloud_rep <- repeatable(wordcloud)
+    wordcloud_rep <- repeatable(wordcloud::wordcloud)
     
     output$plot <- renderPlot({
       v <- terms()
       wordcloud_rep(names(v), v, scale = c(4,0.5),
                     min.freq = input$freq, max.words = input$max,
-                    colors = brewer.pal(8, "Dark2"))
+                    colors = RColorBrewer::brewer.pal(8, "Dark2"))
     })
   })
 }

@@ -14,17 +14,15 @@
 getTermMatrix <- memoise::memoise(function(event) {
   # Careful not to let just any name slip in here; a
   # malicious user could manipulate this value.
-  text <- readLines(event,
-                    encoding = "UTF-8")
-  
+  text <- event
   myCorpus = tm::Corpus(tm::VectorSource(text))
-  myCorpus = tm_map(myCorpus, content_transformer(tolower))
-  myCorpus = tm_map(myCorpus, removePunctuation)
-  myCorpus = tm_map(myCorpus, removeNumbers)
-  myCorpus = tm_map(myCorpus, removeWords,
-                    c(stopwords("SMART"), "thy", "thou", "thee", "the", "and", "but"))
+  myCorpus = tm::tm_map(myCorpus, tm::content_transformer(tolower))
+  myCorpus = tm::tm_map(myCorpus, tm::removePunctuation)
+  myCorpus = tm::tm_map(myCorpus, tm::removeNumbers)
+  myCorpus = tm::tm_map(myCorpus, tm::removeWords,
+                    c(tm::stopwords("SMART"), "thy", "thou", "thee", "the", "and", "but"))
   
-  myDTM = TermDocumentMatrix(myCorpus,
+  myDTM = tm::TermDocumentMatrix(myCorpus,
                              control = list(minWordLength = 1))
   
   m = as.matrix(myDTM)
