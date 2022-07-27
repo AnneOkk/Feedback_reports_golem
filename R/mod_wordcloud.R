@@ -10,7 +10,31 @@
 mod_wordcloud_ui <- function(id){
   ns <- NS(id)
   tagList(
- 
+    fluidPage(
+      # Application title
+      titlePanel("Word Cloud"),
+      
+      sidebarLayout(
+        # Sidebar with a slider and selection inputs
+        sidebarPanel(
+          selectInput("selection", "Choose an event category:",
+                      choices = events),
+          actionButton("update", "Change"),
+          hr(),
+          sliderInput("freq",
+                      "Minimum Frequency:",
+                      min = 1,  max = 50, value = 15),
+          sliderInput("max",
+                      "Maximum Number of Words:",
+                      min = 1,  max = 300,  value = 100)
+        ),
+        
+        # Show Word Cloud
+        mainPanel(
+          plotOutput("plot")
+        )
+      )
+    )
   )
 }
     
