@@ -19,7 +19,7 @@ usethis::use_package("textstem")
 
 ## Add modules ----
 ## Create a module infrastructure in R/
-golem::add_module( name = "wordcloud" ) # Name of the module
+golem::add_module( name = "relation" ) # Name of the module
 golem::add_module( name = "world_map2" ) # Name of the module
 
 ## Add helper functions ----

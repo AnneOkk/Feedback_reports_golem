@@ -36,8 +36,9 @@ mod_wordcloud_ui <- function(id, df){
         plotOutput(ns("plot"))
       ),
       column(
-        4,
-        offset = 1,
+        3,
+        offset = 0.5,
+        br(),
         br(),
         br(),
         br(),
@@ -49,44 +50,52 @@ mod_wordcloud_ui <- function(id, df){
                     "Maximum Number of Words:",
                     min = 1,  max = 15,  value = 15)
         )
+      ),
+    fluidRow(
+      column(
+        6,
+        tagList(
+          uiOutput(ns("help_text"))
+        )
       )
     )
+  )
   }
     
 #' wordcloud Server Functions
 #'
 #' @noRd 
-mod_wordcloud_server <- function(id, df){
+mod_wordcloud_server <- function(id, df, partID){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     # Filter data based on selections
     filtered_rows <- reactive({
-      data <- df
+      data <- df %>% sjlabelled::remove_all_labels(.)
       if (input$selection == "fin") {
-        data <- data[data$`Severest event` == 1,]
+        data <- data[data$Severest.event == 1,]
       }
       if (input$selection == "wit") {
-        data <- data[data$`Severest event` == 2,]
+        data <- data[data$Severest.event == 2,]
       }
       if (input$selection == "bet") {
-        data <- data[data$`Severest event` == 3,]
+        data <- data[data$Severest.event == 3,]
       }
       if (input$selection == "leg") {
-        data <- data[data$`Severest event` == 4,]
+        data <- data[data$Severest.event == 4,]
       }
       if (input$selection == "abs") {
-        data <- data[data$`Severest event` == 5,]
+        data <- data[data$Severest.event == 5,]
       }
       if (input$selection == "mat") {
-        data <- data[data$`Severest event` == 6,]
+        data <- data[data$Severest.event == 6,]
       }
       if (input$selection == "mis") {
-        data <- data[data$`Severest event` == 7,]
+        data <- data[data$Severest.event == 7,]
       }
       if (input$selection == "oth") {
-        data <- data[data$`Severest event` == 8,]
+        data <- data[data$Severest.event == 8,]
       }
-      data %>% select(`Event description`)
+      data %>% select(Event.description)
     })
     # Define a reactive expression for the document term matrix
     terms <- reactive({
@@ -110,6 +119,12 @@ mod_wordcloud_server <- function(id, df){
                     min.freq = input$freq, max.words = input$max,
                     colors = viridis::viridis_pal(option = "D")(6))
     }, height = 470, width = 500)
+    
+    output$help_text <- renderUI({
+      partID <- partID()
+      part_event <- data[[variable]][data[["ID_code"]] == partID]
+      paste0("here:", partID)
+    })
   })
 }
     

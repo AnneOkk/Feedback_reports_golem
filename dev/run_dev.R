@@ -11,4 +11,4 @@ golem::document_and_reload()
 # Run the application
 run_app()
  
-#rm(list = c("app_ui", "golem_add_external_resources", "mod_name_of_module2_server", "mod_name_of_module2_ui", "run_app"))
+#rm(list = c("app_ui", "golem_add_external_resources", "mod_xname_of_module2_server", "mod_name_of_module2_ui", "run_app"))

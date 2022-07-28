@@ -21,7 +21,7 @@ mod_age_hist_server <-  function(id, df, partID){
     output$age_plot <- renderPlot({
       partID <- partID()
       barplot(data = df, variable = "Age", x_name = "Age", y_name = "Count", age = TRUE, gender = FALSE, partID)
-    }, bg="transparent")
+    }, bg = "transparent")
   })
 }
 

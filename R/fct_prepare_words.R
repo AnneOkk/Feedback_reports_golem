@@ -5,7 +5,7 @@
 #' @return a term matrix
 #' 
 #' @import memoise
-#' @import tm
+#' @import tm textstem
 #'
 #' @noRd
 
@@ -19,8 +19,19 @@ getTermMatrix <- memoise::memoise(function(event) {
   myCorpus = tm::tm_map(myCorpus, tm::content_transformer(tolower))
   myCorpus = tm::tm_map(myCorpus, tm::removePunctuation)
   myCorpus = tm::tm_map(myCorpus, tm::removeNumbers)
+  myCorpus = tm::tm_map(myCorpus, textstem::lemmatize_strings)
   myCorpus = tm::tm_map(myCorpus, tm::removeWords,
-                    c(tm::stopwords("SMART"), "thy", "thou", "thee", "the", "and", "but"))
+                    c(tm::stopwords("SMART"), "the", 
+                      "and", "but", 
+                      "cwe", "govt", "make", "problem",
+                      "work", "part", "tough",
+                      "find", "month", "march", "july",
+                      "complete", "process", "absence", "small",
+                      "issue", "hes", "spin-dry", "happen",
+                      "meet", "mistake", "business", "apital",
+                      "payfabricate", "task", "good", 
+                      "luckily", "difficult"
+                      ))
   
   myDTM = tm::TermDocumentMatrix(myCorpus,
                              control = list(minWordLength = 1))
