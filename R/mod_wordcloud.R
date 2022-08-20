@@ -50,15 +50,7 @@ mod_wordcloud_ui <- function(id, df){
                     "Maximum Number of Words:",
                     min = 1,  max = 15,  value = 15)
         )
-      ),
-    fluidRow(
-      column(
-        6,
-        tagList(
-          uiOutput(ns("help_text"))
-        )
       )
-    )
   )
   }
     
@@ -119,14 +111,9 @@ mod_wordcloud_server <- function(id, df, partID){
                     min.freq = input$freq, max.words = input$max,
                     colors = viridis::viridis_pal(option = "D")(6))
     }, height = 470, width = 500)
-    
-    output$help_text <- renderUI({
-      partID <- partID()
-      part_event <- data[[variable]][data[["ID_code"]] == partID]
-      paste0("here:", partID)
-    })
   })
 }
+
     
 ## To be copied in the UI
 # mod_wordcloud_ui("wordcloud_1")

@@ -18,4 +18,5 @@ app_server <- function(input, output, session) {
   mod_sample_info_server("sample_info_ui_1", df)
   mod_world_map_server("world_map_ui_1", df, world_df)
   mod_wordcloud_server("wordcloud_1", df, partID = selectedID)
+  mod_relations_server("relations_1", df, partID = selectedID)
 }

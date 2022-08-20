@@ -20,11 +20,11 @@ usethis::use_package("textstem")
 ## Add modules ----
 ## Create a module infrastructure in R/
 golem::add_module( name = "relation" ) # Name of the module
-golem::add_module( name = "world_map2" ) # Name of the module
+golem::add_module( name = "relations" ) # Name of the module
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
-golem::add_fct( "prepare_words") 
+golem::add_fct( "regplot") 
 golem::add_utils( "textInput2" )
 
 ## External resources

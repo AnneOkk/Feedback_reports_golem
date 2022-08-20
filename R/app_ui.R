@@ -56,6 +56,14 @@ app_ui <- function(request) {
           )
         ),
         bs4Dash::sidebarMenu(
+          id = "relations",
+          bs4Dash::menuItem(
+            text = "Relationships",
+            tabName = "relations",
+            icon = icon("cloud-moon-rain")
+          )
+        ),
+        bs4Dash::sidebarMenu(
           id = "part_id",
           bs4Dash::menuItem(
             mod_ID_selector_ui("ID_selector_ui_1"),
@@ -127,7 +135,18 @@ app_ui <- function(request) {
                 mod_wordcloud_ui("wordcloud_1", df)
               )
             )
+            ),
+          bs4Dash::tabItem(
+            tabName = "relations",
+            fluidRow(
+              column(
+                12, 
+                align = "left", 
+                title = "Events",
+                mod_relations_ui("relations_1")
+              )
             )
+          )
           )
           )
       )
