@@ -5,11 +5,25 @@
 #' @param id,input,output,session Internal parameters for {shiny}.
 #'
 #' @noRd 
-#'
+#' @import ggplot2
 #' @importFrom shiny NS tagList 
 
 mod_relations_ui <- function(id){
+  ns <- NS(id)
+  #categorical variable selection
+  var_options1 <- c("Job satisfaction" = "t1jobsa",
+                    "Job strain" = "t1jobstr")
+  shiny::tagList(
+    div(style = "display:inline-block", # inline block to show selections side by side instead of above each other
+        selectInput(ns("select_var"), 
+                    # second select variable for size (continuous)
+                    label = "Select variable to plot:", 
+                    choices =  var_options1,
+                    selected = var_options1[1])
+    ),
+    
   plotOutput(NS(id, "reg_plot")
+  )
   )
 }
     
@@ -19,12 +33,11 @@ mod_relations_ui <- function(id){
 mod_relations_server <- function(id, df, partID){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+    selected_var <- reactive(input$select_var)
     output$reg_plot <- renderPlot({
       partID <- partID()
-      regplot(data = df, x = "t1meansev", y = "t1jobsa", 
-              partID)
-    }
-    )
+      regplot(data = df, x = "t1meansev", y = selected_var(), partID = partID, xname = "Mean Error Severity", yname = selected_var())
+    }, bg = "transparent")
   })
 }
     

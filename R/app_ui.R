@@ -140,7 +140,8 @@ app_ui <- function(request) {
             tabName = "relations",
             fluidRow(
               column(
-                12, 
+                5,
+                height = "70px",
                 align = "left", 
                 title = "Events",
                 mod_relations_ui("relations_1")
