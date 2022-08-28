@@ -5,7 +5,7 @@
 #' @param id,input,output,session Internal parameters for {shiny}.
 #'
 #' @noRd 
-#' @import ggplot2
+#' @import ggplot2 huxtable
 #' @importFrom shiny NS tagList 
 
 mod_relations_ui <- function(id){
@@ -22,8 +22,8 @@ mod_relations_ui <- function(id){
                     selected = var_options1[1])
     ),
     
-  plotOutput(NS(id, "reg_plot")
-  )
+  plotOutput(NS(id, "reg_plot")),
+  htmlOutput(NS(id, "reg_table"))
   )
 }
     
@@ -38,6 +38,9 @@ mod_relations_server <- function(id, df, partID){
       partID <- partID()
       regplot(data = df, x = "t1meansev", y = selected_var(), partID = partID, xname = "Mean Error Severity", yname = selected_var())
     }, bg = "transparent")
+    output$reg_table <- renderUI({
+      regmodel(data = df, x = "t1meansev", y = selected_var(), controls = c("t1gender", "Age"), coef_names = c("Mean error severity" = "t1meansev", "Gender" = "t1gender", "Age" = "Age"), model_name = "Regression Model")
+      })
   })
 }
     

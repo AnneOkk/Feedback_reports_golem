@@ -37,7 +37,10 @@ Imports:
     textstem,
     SnowballC,
     syuzhet,
-    gghighlight
+    gghighlight,
+    jtools,
+    papaja,
+    huxtable
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.0

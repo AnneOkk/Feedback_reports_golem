@@ -15,7 +15,7 @@
 
 ## Dependencies ----
 ## Add one line by package you want to add as dependency
-usethis::use_package("gghighlight")
+usethis::use_package("huxtable")
 
 ## Add modules ----
 ## Create a module infrastructure in R/
@@ -24,8 +24,8 @@ golem::add_module( name = "relations" ) # Name of the module
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
-golem::add_fct( "regplot") 
-golem::add_utils( "textInput2" )
+golem::add_fct( "regmodel") 
+golem::add_utils( "my_lm" )
 
 ## External resources
 ## Creates .js and .css files at inst/app/www
